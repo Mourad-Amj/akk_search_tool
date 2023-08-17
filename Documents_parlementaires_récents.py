@@ -17,7 +17,6 @@ def get_links(url, session):
             continue
 
         href_value = link.attrs.get("href")
-
         final_link = f"{LINK_PREFIX}{href_value}"
 
         yield final_link
@@ -70,7 +69,7 @@ def get_all_data(link, session):
 
 
 def save_file(data):
-    with open("data/full_data.json", "w") as f:
+    with open("data/Documents_parlementaires_récents.json", "w") as f:
         json.dump(data, f)
 
 
