@@ -37,13 +37,14 @@ def get_all_data(link, session):
     data["title"] = title
 
     finding_date = soup2.find_all("td", attrs="td0x")
-    date = finding_date[2].text.strip()
+    date = finding_date[3].text.strip()
     data["date"] = date
 
     finding_pdf = soup2.select("a[href*=lachambre]")
     pdf_cleansing = finding_pdf[0]
     pdf = pdf_cleansing.attrs.get("href")
     data["pdf"] = pdf
+
     return data
 
 
@@ -53,14 +54,14 @@ def save_file(data):
 
 
 def main():
-    print("starting")
+    print("Starting scrapping...")
     data = []
     with requests.Session() as session:
         for link in tqdm.tqdm(get_links(ROOT_URL, session)):
             data.append(get_all_data(link, session))
 
     save_file(data)
-    print("finishing")
+    print("Finished")
 
 
 if __name__ == "__main__":
