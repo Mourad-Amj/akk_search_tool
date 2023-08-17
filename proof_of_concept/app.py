@@ -1,12 +1,15 @@
 # Streamlit proof of concept
 # Run this with 
-# streamlit run proof_of_concept/app.py
+# python -m streamlit run proof_of_concept/app.py
 
 # imports
 import streamlit as st
 import pandas as pd
 import io
 import xlsxwriter
+
+from sentence_transformers import SentenceTransformer, util
+
 
 # initialization
 st.title("PoC: lachambre.be custom search engine")
@@ -23,13 +26,13 @@ database=[{'id':  "55K3152",
         'text': "Le projet de loi a pour objet de réformer la procédure pénale sur deux points: d’une part, en ce qui concerne les règles relatives à l’action publique pour des crimes ou délits commis hors du territoire du Royaume et, d’autre part, en ce qui concerne la prescription de l’action publique. Tout d’abord, il restructure et réécrit les articles existants du chapitre II du Titre préliminaire du Code de procédure pénale, en classant dans différentes sections les dispositions relatives à la compétence extraterritoriale des juridictions belges selon les critères traditionnels du droit international public. En outre, le projet de loi vise à réformer le système de prescription. À cet égard, il se fonde sur trois principes de base: 1° des délais suffisamment longs pour mener et clôturer une enquête pénale, sur la base de délais fixes sans possibilité d’interruption de la prescription; 2° la cessation du cours de la prescription dès l’instant où la juridiction de jugement est saisie de l’action publique; 3°  la validité des causes de suspension uniquement lorsqu’il existe réellement un obstacle à l’introduction ou à l’exercice de l’action publique",
         'source':   "Chambre des représentants de Belgique",
         'date': "08/02/2023",
-        'author': "Gouvernement/Regering"},
+        'author': ["Gouvernement/Regering"]},
 {'id':  "55K3520" ,
         'title': "Projet de loi modifiant la loi du 7 mai 1999 portant création du Palais des Beaux-Arts sous la forme d'une société anonyme de droit public à finalité sociale et modifiant la loi du 30 mars 1995 concernant les réseaux de distribution d'émissions de radiodiffusion et l'exercice d'activités de radiodiffusion dans la région bilingue de Bruxelles-Capitale.",
         'text': "Le Palais des Beaux-Arts (PBA ou BOZAR) est une société anonyme de droit public à finalité sociale. Elle a été créée par une loi du 7 mai 1999 et ses statuts sont contenus dans un arrêté royal du 19 décembre 2001. La finalité sociale est expressément consacrée par l’article 18 de ses statuts (AR 2001). Cette notion n’existe plus dans le nouveau Code des Sociétés et des Associations (CSA) du 23 mars 2019. Il faut donc mettre les dispositions légales et statutaires du PBA en conformité avec le CSA au plus tard pour le 1er janvier 2024 (art. 39 Loi CSA). Il a été décidé, parmi plusieurs possibilités de formes juridiques, de maintenir la forme de SA de droit public, en ne mentionnant plus expressément la finalité sociale mais en maintenant un esprit “non profit”, principalement par l’absence de poursuite de but de lucre. La société restera de droit public, sous le contrôle de l’État fédéral, actionnaire majoritaire, avec un objet inchangé, notamment dans sa mission de service public",
         'source':  "Chambre des représentants de Belgique",
         'date':"02/08/2023",
-        'author': "Gouvernement/Regering"},
+        'author': ["Gouvernement/Regering"]},
 {'id':  "55K1169" ,
         'title':   "Proposition de loi instaurant une taxe corona de solidarité sur les multimillionnaires." ,
         'text': "Cette proposition de loi établit une taxe unique à charge des multimillionnaires afin de parer aux conséquences sociales de la crise du coronavirus. Son taux d’imposition est de 5 % sur la partie du patrimoine excédant trois millions d’euros ; la première maison d’habitation est exonérée de la taxe, ainsi que les actifs professionnels jusqu’à 500 000 euros chacun au maximum",
@@ -71,23 +74,53 @@ database=[{'id':  "55K3152",
         'text': "Ce projet de loi a pour objet de réformer les tarifs sociaux en matière de communications électroniques, à partir du 1er mars 2024. Il convient de rappeler que la directive (UE) 2018/1972 du Parlement européen et du Conseil du 11 décembre 2018 établissant le code de communications électroniques européen (ci-après de “le Code”) énonce que l’objectif du service universel est de fournir un ensemble de services minimaux aux consommateurs afin de garantir l’inclusion sociale (considérant 212 du Code). Afin de tenir compte des exigences de la directive (UE) 2018/1972 en matière du service universel, le projet de loi s’oriente vers la mise en place d’offres de base qui portent sur l’internet à haut débit fourni en position déterminée. Les caractéristiques minimales de ces offres seront fixées par arrêté royal. Afin de permettre au plus grand nombre de personnes vulnérables de bénéficier du tarif social et, partant, de contribuer à la réduction de la fracture numérique, le projet prévoit des catégories différentes d’ayants droit pour des personnes qui perçoivent ou dont un membre du ménage perçoit certains types d’allocations. Ces catégories sont inspirées de celles qui prévalent en permanence dans le cadre des tarifs sociaux en matière de gaz et d’électricité. Le projet prévoit aussi l’obligation pour les opérateurs offrant aux consommateurs un service d’accès à l’internet à haut débit en position déterminée, qui disposent directement ou indirectement d’un réseau d’accès fixe et qui ont un chiffre d’affaires supérieur à 50 millions d’euros portant sur les services de communications électroniques accessibles au public, de fournir, sur la partie du territoire où ils disposent de leur réseau d’accès, la composante sociale du service universel. Enfin, ce projet de loi prévoit également le maintien du régime actuellement en vigueur pour les ayants droit actuels qui ont introduit leur demande pour bénéficier des tarifs sociaux actuellement en vigueur avant le 1er mars 2024, cela dans le but de permettre à ces bénéficiaires de conserver les avantages acquis sous l’ancien régime",
         'source':  "Chambre des représentants de Belgique" ,
         'date': "13/06/2023",
-        'author': "Gouvernement/Regering"}]
+        'author': ["Gouvernement/Regering"]}]
 
-# load dataframe
+# compute embeddings
+embedder = SentenceTransformer('all-MiniLM-L6-v2')
 
+for item in database:
+    item["embedding"] = embedder.encode(item["text"], convert_to_tensor=False)
 
 
 # create text field
 # output: search string
 search = st.text_input('Type your search')
+
 # apply search in dataframe
 # input: search string, output: new dataframe
 # df_out = semantic_search(df, search)
-df_out = pd.DataFrame({'Data': [11, 12, 13, 14]})
+search_result = []
 
+score_threshold = st.slider('Filtering threshold: ', 0.0, 0.5, 0.35)
+st.write("Cosine similarity set at", score_threshold)
+
+
+query_embedding = embedder.encode(search, convert_to_tensor=False)
+for item in database: 
+    cos_score = util.cos_sim(item["embedding"], query_embedding)[0]
+    condition = cos_score.abs()
+    if condition > score_threshold :
+        search_result.append(item)
+
+
+
+try:
+    df_temp = pd.DataFrame(search_result)
+    df_out = df_temp[['id', 'title', 'author', 'date', 'source', 'text']]
+except:
+    df_out = pd.DataFrame(search_result)
 # write excel
 # input: dataframe, output: excel file (as a variable)
 buffer = io.BytesIO()
+
+st.dataframe(
+    df_out,
+    hide_index=True,
+    use_container_width= True
+)
+
+
 
 with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
     df_out.to_excel(writer, sheet_name='Sheet1')
