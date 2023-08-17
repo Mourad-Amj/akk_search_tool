@@ -162,3 +162,4 @@ cython_debug/
 
 #Test folders
 folder_to_ignore/
+.DS_Store
