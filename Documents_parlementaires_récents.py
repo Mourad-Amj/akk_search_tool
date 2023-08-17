@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup as bs
+import json
 
 ROOT_URL = "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4"
 LINK_PREFIX = "https://www.lachambre.be/kvvcr/"
@@ -40,7 +41,11 @@ for url in urls_list:
     pdf_cleansing = finding_pdf[0]
     pdf = pdf_cleansing.attrs.get("href")
 
-    hello = document + title + date + pdf
+    hello = document + ", " + title + ", " + date + ", " + pdf
+
     merci_maxim.append(hello)
 
 print(merci_maxim)
+
+with open("test.json", "w") as file:
+    json.dump(merci_maxim, file)
