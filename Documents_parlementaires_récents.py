@@ -19,6 +19,7 @@ def get_links(url, session):
         href_value = link.attrs.get("href")
 
         final_link = f"{LINK_PREFIX}{href_value}"
+
         yield final_link
 
 
@@ -27,30 +28,50 @@ def get_all_data(link, session):
 
     response2 = session.get(link)
     soup2 = bs(response2.text, "html.parser")
+    # print(link)
 
-    document_number = soup2.find("center")
-    document = document_number.text.strip()
-    data["documents"] = document
+    data["Page's main url"] = link
 
-    finding_title = soup2.find_all("center")
-    title = finding_title[1].text.strip()
-    data["title"] = title
+    finding_document_number = link.split("=")[7]
+    data["Document Number"] = finding_document_number
+
+    finding_first_title = soup2.find("center")
+    first_title = finding_first_title.text.strip()
+    data["First title"] = first_title
+
+    finding_main_title = soup2.find_all("center")
+    main_title = finding_main_title[1].text.strip()
+    data["Main title"] = main_title
 
     finding_date = soup2.find_all("td", attrs="td0x")
     date = finding_date[3].text.strip()
-    data["date"] = date
+    data["Date"] = date
 
-    finding_pdf = soup2.select("a[href*=lachambre]")
-    pdf_cleansing = finding_pdf[0]
-    pdf = pdf_cleansing.attrs.get("href")
-    data["pdf"] = pdf
+    finding_url_pdf = soup2.select("a[href*=lachambre]")
+    url_pdf_cleansing = finding_url_pdf[0]
+    url_pdf = url_pdf_cleansing.attrs.get("href")
+    data["URL of pdf"] = url_pdf
+
+    finding_type_de_document = soup2.find_all("td", attrs="td0x")
+    type_de_document_found = finding_type_de_document[6].text.split()[3:6]
+    type_de_document_clean = " ".join(type_de_document_found)
+    data["Type"] = type_de_document_clean
+
+    auteurs = []
+    finding_auteurs = soup2.select("td")
+    for i, all_auteurs in enumerate(finding_auteurs):
+        if all_auteurs.text.strip() == "Auteur(s)":
+            found_auteurs = all_auteurs.text.split()
+            auteurs = finding_auteurs[i + 1].text.split(", ")
+    find_auteurs = " ".join(auteurs).replace("(AUTEUR)", "")
+    data["Stakeholders"] = find_auteurs
 
     return data
 
 
 def save_file(data):
-    with open("data/full_data.json", "w") as file:
-        json.dump(data, file)
+    with open("data/full_data.json", "w") as f:
+        json.dump(data, f)
 
 
 def main():
