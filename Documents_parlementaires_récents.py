@@ -1,51 +1,67 @@
 import requests
 from bs4 import BeautifulSoup as bs
 import json
+import tqdm
 
 ROOT_URL = "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4"
 LINK_PREFIX = "https://www.lachambre.be/kvvcr/"
 
-response = requests.get(ROOT_URL)
-soup = bs(response.text, "html.parser")
+
+def get_links(url, session):
+    response = requests.get(url, session)
+    soup = bs(response.text, "html.parser")
+    links = soup.select("a[href*=dossierID]")
+
+    for link in links:
+        if link.findChild("img"):
+            continue
+
+        href_value = link.attrs.get("href")
+
+        final_link = f"{LINK_PREFIX}{href_value}"
+        yield final_link
 
 
-links = soup.select("a[href*=dossierID]")
+def get_all_data(link, session):
+    data = {}
 
-urls_list = []
-
-for link in links:
-    if link.findChild("img"):
-        continue
-
-    href_value = link.attrs.get("href")
-
-    final_url = f"{LINK_PREFIX}{href_value}"
-    urls_list.append(final_url)
-
-
-merci_maxim = []
-for url in urls_list:
-    response2 = requests.get(url)
+    response2 = session.get(link)
     soup2 = bs(response2.text, "html.parser")
 
     document_number = soup2.find("center")
     document = document_number.text.strip()
+    data["documents"] = document
 
     finding_title = soup2.find_all("center")
     title = finding_title[1].text.strip()
+    data["title"] = title
 
     finding_date = soup2.find_all("td", attrs="td0x")
     date = finding_date[2].text.strip()
+    data["date"] = date
 
     finding_pdf = soup2.select("a[href*=lachambre]")
     pdf_cleansing = finding_pdf[0]
     pdf = pdf_cleansing.attrs.get("href")
+    data["pdf"] = pdf
+    return data
 
-    hello = document + ", " + title + ", " + date + ", " + pdf
 
-    merci_maxim.append(hello)
+def save_file(data):
+    with open("data/full_data.json", "w") as file:
+        json.dump(data, file)
 
-print(merci_maxim)
 
-with open("test.json", "w") as file:
-    json.dump(merci_maxim, file)
+def main():
+    print("starting")
+    data = []
+    with requests.Session() as session:
+        for link in tqdm.tqdm(get_links(ROOT_URL, session)):
+            data.append(get_all_data(link, session))
+
+    save_file(data)
+    print("finishing")
+
+
+if __name__ == "__main__":
+    main()
