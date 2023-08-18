@@ -43,23 +43,27 @@ def get_all_data(link, session):
     main_title = finding_main_title[1].text.strip()
     data["Main title"] = main_title
 
+    date = []
     finding_date = soup2.find_all("td")
     regex = r"\d{1,2}/\d{1,2}/\d{1,4}"
     for i, all_dates in enumerate(finding_date):
         dates = all_dates.text.strip()
         if match := re.search(regex, dates, re.IGNORECASE):
-            date = match
-    data["Date de dépôt"] = date
+            date.append(match[0])
+    data["Date de dépôt"] = date[0]
 
     finding_url_pdf = soup2.select("a[href*=lachambre]")
     url_pdf_cleansing = finding_url_pdf[0]
     url_pdf = url_pdf_cleansing.attrs.get("href")
     data["URL of pdf"] = url_pdf
 
-    finding_type_de_document = soup2.find_all("td", attrs="td0x")
-    type_de_document_found = finding_type_de_document[6].text.split()[3:6]
-    type_de_document_clean = " ".join(type_de_document_found)
-    data["Type"] = type_de_document_clean
+    type_of_document = []
+    finding_type_de_document = soup2.select("td", {"class": "td0x"})
+    for i, all_documents in enumerate(finding_type_de_document):
+        if all_documents.text.strip() == "Type de document":
+            document = all_documents.text.split()
+            type_of_document.append(finding_type_de_document[i + 1].text.split(", "))
+    data["Type"] = type_of_document
 
     auteurs = []
     finding_auteurs = soup2.select("td")
