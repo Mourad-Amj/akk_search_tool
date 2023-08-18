@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup as bs
 import json
 import tqdm
+import re
 
 ROOT_URL = "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4"
 LINK_PREFIX = "https://www.lachambre.be/kvvcr/"
@@ -42,9 +43,13 @@ def get_all_data(link, session):
     main_title = finding_main_title[1].text.strip()
     data["Main title"] = main_title
 
-    finding_date = soup2.find_all("td", attrs="td0x")
-    date = finding_date[3].text.strip()
-    data["Date"] = date
+    finding_date = soup2.find_all("td")
+    regex = r"\d{1,2}/\d{1,2}/\d{1,4}"
+    for i, all_dates in enumerate(finding_date):
+        dates = all_dates.text.strip()
+        if match := re.search(regex, dates, re.IGNORECASE):
+            date = match
+    data["Date de dépôt"] = date
 
     finding_url_pdf = soup2.select("a[href*=lachambre]")
     url_pdf_cleansing = finding_url_pdf[0]
@@ -64,6 +69,13 @@ def get_all_data(link, session):
             auteurs = finding_auteurs[i + 1].text.split(", ")
     find_auteurs = " ".join(auteurs).replace("(AUTEUR)", "")
     data["Stakeholders"] = find_auteurs
+
+    finding_commission = soup2.select("td")
+    for i, commission in enumerate(finding_commission):
+        if "(PUBLIC)" in commission.text.strip():
+            all_commissions = commission.text.strip(", ").split("\r")[0].strip()
+            if all_commissions:
+                data["Commissions"] = all_commissions
 
     return data
 
