@@ -55,13 +55,37 @@ def get_all_data(link, session):
         dossier_type_of_document_formatted = (" ").join(dossier_type_of_document)
 
         data[dossier_id] = {
-            "page's main url": ROOT_URL,
-            "dossier id": dossier_id,
-            "text": text,
+            "title": text,
+            "document_page_url": ROOT_URL,
+            "document_number": dossier_id,
+            "fr_text": "",
             "date": dossier_date_formatted,
-            "pdf link": pdf_link,
+            "link_to_document": pdf_link,
             "pdf id": pdf_link_element,
-            "type of documents": dossier_type_of_document_formatted,
+            "keywords": " ",
+            "source": "Documents Parlementaires Récents",
+            "commissionchambre": "",
+            "nl_text": "",
+            "stakeholders": "",
+            "status": "",
+            "title_embedding": [],  # preprocess -> not for engineers
+            "fr_text_embedding": [],  # preprocess -> not for engineers
+            "nl_text_embedding": [],  # preprocess -> not for engineers
+            "topic": "",  # preprocess -> not for engineers
+            "policy level": "",  # preprocess -> not for engineers
+            "type": "",  # preprocess -> not for engineers
+            "issue": "",  # preprocess -> not for engineers
+            "reference": "",  # preprocess -> not for engineers
+            "maindocuments": "",
+            "typededocument": dossier_type_of_document_formatted,
+            "descripteurEurovocprincipal": "",
+            "descripteursEurovoc": "",
+            "seancepleinierechambre": "",
+            "compťtence": "",
+            "1_commissionchambre": "",
+            "2_commissionchambre": "",
+            "1_seancepleinierechambre": "",
+            "2_seancepleinierechambre": "",
         }
     return data
 
