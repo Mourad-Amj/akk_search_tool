@@ -6,7 +6,6 @@
 import streamlit as st
 import pandas as pd
 import io
-import xlsxwriter
 
 from sentence_transformers import SentenceTransformer, util
 import datetime
@@ -14,12 +13,6 @@ import datetime
 
 # initialization
 st.title("PoC: lachambre.be custom search engine")
-
-# Creating test .jsons
-
-
-
-
 
 @st.cache_data
 def load_data():
@@ -112,8 +105,15 @@ def apply_date_filter(database, start_date, end_date):
 # ---
 # Load environment
 # ---
-
 database = load_data()
+# ---
+# Parameters
+# ---
+
+language = st.radio(
+    "Output language: ",
+    ('fr', 'nl'))
+
 
 # ---
 # Search filter
@@ -142,23 +142,43 @@ search_result = apply_topic_filter(apply_date_filter(database, start_date, end_d
 
 try:
     df_temp = pd.DataFrame(search_result)
-    df_out = df_temp[['id', 'title', 'author', 'date', 'source', 'text']]
+    df_new = df_temp[['id', 'title', 'author', 'date', 'source', 'text']]
 except:
-    df_out = pd.DataFrame(search_result)
+    df_new = pd.DataFrame(search_result)
+
+st.dataframe(df_new, hide_index=True, use_container_width= True)
+
+
+if "output_df" not in st.session_state:
+    st.session_state['output_df'] = pd.DataFrame(columns=['id', 'title', 'author', 'date', 'source', 'text'])
+
+# ---
+# Adding search result
+# ---
+
+if st.button("Append search result"):
+    # update dataframe state
+    st.session_state.output_df = pd.concat([st.session_state.output_df, df_new], axis=0, ignore_index=True)
+
+    st.text("Updated dataframe")
+    st.dataframe(st.session_state.output_df)
+
 
 # ---    
 # Outputting an .xlsx file
 # ---
 
 buffer = io.BytesIO()
-st.dataframe(df_out, hide_index=True, use_container_width= True)
 
 with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-    df_out.to_excel(writer, sheet_name='Sheet1')
+    output = pd.DataFrame(st.session_state.output_df)
+    output.to_excel(writer, sheet_name='Sheet1')
+    writer.close()
+
     st.download_button(
         label="Download Excel worksheets",
         data=buffer,
-        file_name="pandas_multiple.xlsx",
+        file_name="output_df.xlsx",
         mime="application/vnd.ms-excel"
     )
 

@@ -116,6 +116,15 @@ def apply_date_filter(database, start_date, end_date):
 database = load_data()
 
 # ---
+# Parameters
+# ---
+
+language = st.radio(
+    "Output language: ",
+    ('fr', 'nl'))
+
+
+# ---
 # Search filter
 # ---
 
@@ -145,6 +154,13 @@ try:
     df_out = df_temp[['id', 'title', 'author', 'date', 'source', 'text']]
 except:
     df_out = pd.DataFrame(search_result)
+
+# ---
+# Adding search result
+# ---
+
+
+
 
 # ---    
 # Outputting an .xlsx file
