@@ -63,12 +63,12 @@ def get_all_data(link, session):
             )
     data["typededocument"] = " ".join(type_of_document[0].split(" ")[1:])
 
-    finding_auteurs = soup2.find_all("td", class_="td0xs")
+    finding_auteurs = soup2.find_all("td", class_="td0x")
     for i, all_auteurs in enumerate(finding_auteurs):
-        if all_auteurs.text.strip() == "Auteur(s)":
-            auteurs = finding_auteurs[i + 1].text.split(", ")
-            find_auteurs = " ".join(auteurs).replace("(AUTEUR)", "")
-            data["stakeholders"] = find_auteurs
+        if "(AUTEUR)" in all_auteurs.text.strip():
+            auteurs = finding_auteurs[i].text.replace("(AUTEUR)", "").strip()
+            data["stakeholders"] = auteurs
+            break
 
     finding_commission = soup2.find_all("td", class_="td0x")
     for i, commissions in enumerate(finding_commission):
