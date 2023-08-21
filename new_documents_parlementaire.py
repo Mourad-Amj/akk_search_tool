@@ -37,6 +37,7 @@ def get_all_data(link, session):
         )
         dossier_text = dossier_content_div_text[0]
         dossier_date = dossier_content_div_text[1]
+        text = dossier_text.split(".")[0]
 
         dossier_date_formatted = None
         match = re.search(regex, dossier_date, re.IGNORECASE)
@@ -56,11 +57,11 @@ def get_all_data(link, session):
         data[dossier_id] = {
             "page's main url": ROOT_URL,
             "dossier id": dossier_id,
-            "text": dossier_text,
+            "text": text,
             "date": dossier_date_formatted,
             "pdf link": pdf_link,
             "pdf id": pdf_link_element,
-            "type of gdocuments": dossier_type_of_document_formatted,
+            "type of documents": dossier_type_of_document_formatted,
         }
     return data
 
