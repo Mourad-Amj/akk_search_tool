@@ -30,9 +30,7 @@ def get_all_data(link, session):
                 dossier_id_element.parent.parent.find_next_sibling().find("div")
             )
         except AttributeError:
-            # print(f"skip for {dossier_id}")
             continue
-        # print("text div element: ", remove_extra_spaces(text_div_element.text))
 
         dossier_content_div_text = remove_extra_spaces(text_div_element.text).split(
             "Date"
