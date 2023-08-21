@@ -18,31 +18,26 @@ def get_all_data(link, session):
     regex = r"\d{1,2}/\d{1,2}/\d{1,4}"
 
     response = session.get(link)
-
-    with open("soup_test_1.html", "w") as f:
-        f.write(response.text)
     soup = bs(response.text, "html.parser")
 
     finding_element = soup.find_all("div", class_="linklist_1")
-    print(f"found {len(finding_element)} linklist_1")
     for element in finding_element:
         dossier_id_element = element.find("a")
         dossier_id = dossier_id_element.text
-        print("dossier id: ", dossier_id)
+        # print("dossier id: ", dossier_id)
         try:
             text_div_element = (
                 dossier_id_element.parent.parent.find_next_sibling().find("div")
             )
         except AttributeError:
-            # print(f"skip for {dossier_id}")
             continue
-        # print("text div element: ", remove_extra_spaces(text_div_element.text))
 
         dossier_content_div_text = remove_extra_spaces(text_div_element.text).split(
             "Date"
         )
         dossier_text = dossier_content_div_text[0]
         dossier_date = dossier_content_div_text[1]
+        text = dossier_text.split(".")[0]
 
         dossier_date_formatted = None
         match = re.search(regex, dossier_date, re.IGNORECASE)
@@ -54,15 +49,44 @@ def get_all_data(link, session):
         if pdf_link_element["href"].startswith("/site/wwwcfm/flwb/flwbcheckpdf"):
             pdf_link = PDF_PREFIX + pdf_link_element["href"]
 
-        data[dossier_id] = {
-            "text": dossier_text,
-            "date": dossier_date_formatted,
-            "pdf_link": pdf_link,
-        }
+        pdf_link_element = dossier_text.split(" ")[-2]
 
-        print("text: ", dossier_text)
-        print("date: ", dossier_date_formatted)
-        print("pdf: ", pdf_link)
+        dossier_type_of_document = dossier_content_div_text[1].split(" ")[3:]
+        dossier_type_of_document_formatted = (" ").join(dossier_type_of_document)
+
+        data[dossier_id] = {
+            "title": text,
+            "document_page_url": ROOT_URL,
+            "document_number": dossier_id,
+            "fr_text": "",
+            "date": dossier_date_formatted,
+            "link_to_document": pdf_link,
+            "pdf id": pdf_link_element,
+            "keywords": " ",
+            "source": "Documents Parlementaires Récents",
+            "commissionchambre": "",
+            "nl_text": "",
+            "stakeholders": "",
+            "status": "",
+            "title_embedding": [],  # preprocess -> not for engineers
+            "fr_text_embedding": [],  # preprocess -> not for engineers
+            "nl_text_embedding": [],  # preprocess -> not for engineers
+            "topic": "",  # preprocess -> not for engineers
+            "policy level": "",  # preprocess -> not for engineers
+            "type": "",  # preprocess -> not for engineers
+            "issue": "",  # preprocess -> not for engineers
+            "reference": "",  # preprocess -> not for engineers
+            "maindocuments": "",
+            "typededocument": dossier_type_of_document_formatted,
+            "descripteurEurovocprincipal": "",
+            "descripteursEurovoc": "",
+            "seancepleinierechambre": "",
+            "compťtence": "",
+            "1_commissionchambre": "",
+            "2_commissionchambre": "",
+            "1_seancepleinierechambre": "",
+            "2_seancepleinierechambre": "",
+        }
     return data
 
 
