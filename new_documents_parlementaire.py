@@ -58,9 +58,9 @@ def get_all_data(link, session):
             "dossier id": dossier_id,
             "text": dossier_text,
             "date": dossier_date_formatted,
-            "pdf_link": pdf_link,
+            "pdf link": pdf_link,
             "pdf id": pdf_link_element,
-            "type_of_documents": dossier_type_of_document_formatted,
+            "type of gdocuments": dossier_type_of_document_formatted,
         }
     return data
 
