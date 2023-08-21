@@ -18,17 +18,13 @@ def get_all_data(link, session):
     regex = r"\d{1,2}/\d{1,2}/\d{1,4}"
 
     response = session.get(link)
-
-    with open("soup_test_1.html", "w") as f:
-        f.write(response.text)
     soup = bs(response.text, "html.parser")
 
     finding_element = soup.find_all("div", class_="linklist_1")
-    print(f"found {len(finding_element)} linklist_1")
     for element in finding_element:
         dossier_id_element = element.find("a")
         dossier_id = dossier_id_element.text
-        print("dossier id: ", dossier_id)
+        # print("dossier id: ", dossier_id)
         try:
             text_div_element = (
                 dossier_id_element.parent.parent.find_next_sibling().find("div")
@@ -54,15 +50,20 @@ def get_all_data(link, session):
         if pdf_link_element["href"].startswith("/site/wwwcfm/flwb/flwbcheckpdf"):
             pdf_link = PDF_PREFIX + pdf_link_element["href"]
 
+        pdf_link_element = dossier_text.split(" ")[-2]
+
+        dossier_type_of_document = dossier_content_div_text[1].split(" ")[3:]
+        dossier_type_of_document_formatted = (" ").join(dossier_type_of_document)
+
         data[dossier_id] = {
+            "page's main url": ROOT_URL,
+            "dossier id": dossier_id,
             "text": dossier_text,
             "date": dossier_date_formatted,
             "pdf_link": pdf_link,
+            "pdf id": pdf_link_element,
+            "type_of_documents": dossier_type_of_document_formatted,
         }
-
-        print("text: ", dossier_text)
-        print("date: ", dossier_date_formatted)
-        print("pdf: ", pdf_link)
     return data
 
 
