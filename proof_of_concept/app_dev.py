@@ -11,7 +11,7 @@ import xlsxwriter
 from sentence_transformers import SentenceTransformer, util
 import datetime
 
-
+st.set_page_config(page_title = "Search engine")
 # initialization
 st.title("PoC: lachambre.be custom search engine")
 
@@ -124,28 +124,40 @@ language = st.radio(
     ('fr', 'nl'))
 
 
+### Filters sub-section
+
+st.subheader("Filters")
+col1, col2= st.columns(2)
 # ---
 # Search filter
 # ---
 
 # Text field + processing query
+
+with col2:
+    # Slider to tune the threshold on cos similarity
+    score_threshold = st.slider('Filtering threshold: ', 0.0, 0.5, 0.35)
+    st.write("Cosine similarity set at", score_threshold)
+    st.info('Filter by relevance', icon="ℹ️")
+    
+# Date filter 
+with col1:
+# Date filter 
+    #st.date_input("test date",format="YDD/MM/YYYY")
+    start_date = st.date_input('Start date', datetime.date.today() - datetime.timedelta(days=15))
+    end_date = st.date_input('End date', datetime.date.today())
+    if start_date < end_date:
+        st.success('Start date (default: 2 weeks ago): `%s`\n\nEnd date (default: today):`%s`' % (start_date, end_date))
+    else:
+        st.error('Error: End date must fall after start date.')
+ 
+# Applying the filters
+
 embedder = SentenceTransformer('all-MiniLM-L6-v2')
 search = st.text_input('Type your search')
 query_embedding = embedder.encode(search, convert_to_tensor=False)
 
-# Slider to tune the threshold on cos similarity
-score_threshold = st.slider('Filtering threshold: ', 0.0, 0.5, 0.35)
-st.write("Cosine similarity set at", score_threshold)
 
-# Date filter 
-start_date = st.date_input('Start date', datetime.date.today() - datetime.timedelta(days=15))
-end_date = st.date_input('End date', datetime.date.today())
-if start_date < end_date:
-    st.success('Start date (default: 2 weeks ago): `%s`\n\nEnd date (default: today):`%s`' % (start_date, end_date))
-else:
-    st.error('Error: End date must fall after start date.')
-    
-# Applying the filters
 
 search_result = apply_topic_filter(apply_date_filter(database, start_date, end_date), score_threshold)
 
@@ -155,29 +167,16 @@ try:
 except:
     df_out = pd.DataFrame(search_result)
 
-# ---
-# Adding search result
-# ---
-
-
-
-
-# ---    
-# Outputting an .xlsx file
-# ---
-
-buffer = io.BytesIO()
 st.dataframe(df_out, hide_index=True, use_container_width= True)
+if "output_df" not in st.session_state:
+    st.session_state['output_df'] = pd.DataFrame(columns=['id', 'title', 'author', 'date', 'source', 'text'])
 
-with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-    df_out.to_excel(writer, sheet_name='Sheet1')
-    st.download_button(
-        label="Download Excel worksheets",
-        data=buffer,
-        file_name="pandas_multiple.xlsx",
-        mime="application/vnd.ms-excel"
-    )
 
+if st.button("Append search result"):
+    # update dataframe state
+    st.session_state.output_df = pd.concat([st.session_state.output_df, df_new], axis=0, ignore_index=True).drop_duplicates(subset='id', keep="last")
+    
+    st.text("Updated dataframe")
 
 
 

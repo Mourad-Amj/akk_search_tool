@@ -18,11 +18,6 @@ import datetime
 # initialization
 st.title("PoC: lachambre.be custom search engine")
 
-# Creating test .jsons
-
-
-
-
 
 @st.cache_data
 def load_data():

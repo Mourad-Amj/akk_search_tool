@@ -120,9 +120,6 @@ language = st.radio(
 # ---
 
 # Text field + processing query
-embedder = SentenceTransformer('all-MiniLM-L6-v2')
-search = st.text_input('Type your search')
-query_embedding = embedder.encode(search, convert_to_tensor=False)
 
 # Slider to tune the threshold on cos similarity
 score_threshold = st.slider('Filtering threshold: ', 0.0, 0.5, 0.35)
@@ -137,6 +134,10 @@ else:
     st.error('Error: End date must fall after start date.')
     
 # Applying the filters
+
+embedder = SentenceTransformer('all-MiniLM-L6-v2')
+search = st.text_input('Type your search')
+query_embedding = embedder.encode(search, convert_to_tensor=False)
 
 search_result = apply_topic_filter(apply_date_filter(database, start_date, end_date), score_threshold)
 
@@ -158,30 +159,8 @@ if "output_df" not in st.session_state:
 
 if st.button("Append search result"):
     # update dataframe state
-    st.session_state.output_df = pd.concat([st.session_state.output_df, df_new], axis=0, ignore_index=True)
-
+    st.session_state.output_df = pd.concat([st.session_state.output_df, df_new], axis=0, ignore_index=True).drop_duplicates(subset='id', keep="last")
+    
     st.text("Updated dataframe")
-    st.dataframe(st.session_state.output_df)
-
-
-# ---    
-# Outputting an .xlsx file
-# ---
-
-buffer = io.BytesIO()
-
-with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-    output = pd.DataFrame(st.session_state.output_df)
-    output.to_excel(writer, sheet_name='Sheet1')
-    writer.close()
-
-    st.download_button(
-        label="Download Excel worksheets",
-        data=buffer,
-        file_name="output_df.xlsx",
-        mime="application/vnd.ms-excel"
-    )
-
-
 
 
