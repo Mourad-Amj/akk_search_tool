@@ -8,6 +8,9 @@ import pandas as pd
 import io
 import xlsxwriter
 
+#DO NOT USE
+#import SessionState
+
 from sentence_transformers import SentenceTransformer, util
 import datetime
 
@@ -121,10 +124,13 @@ database = load_data()
 # Search filter
 # ---
 
-# Text field + processing query
-embedder = SentenceTransformer('all-MiniLM-L6-v2')
-search = st.text_input('Type your search')
-query_embedding = embedder.encode(search, convert_to_tensor=False)
+#sidebar tryout
+# with st.sidebar:
+#         st.title("Menu")
+
+
+
+
 
 #added filter title
 st.subheader("Filters")
@@ -148,6 +154,11 @@ with col2:
     st.write("Cosine similarity set at", score_threshold)
     st.info('Filter by relevance', icon="ℹ️")
     
+# Text field + processing query
+embedder = SentenceTransformer('all-MiniLM-L6-v2')
+search = st.text_input('Type your search')
+query_embedding = embedder.encode(search, convert_to_tensor=False)
+    
 # Applying the filters
 
 
@@ -158,6 +169,9 @@ search_result = apply_topic_filter(apply_date_filter(database, start_date, end_d
 try:
     df_temp = pd.DataFrame(search_result)
     df_out = df_temp[['id', 'title', 'author', 'date', 'source', 'text']]
+    
+    #implementing session state
+    st.session_state['saved_df'] = df_out
 except:
     df_out = pd.DataFrame(search_result)
 
@@ -165,15 +179,35 @@ except:
 # Outputting an .xlsx file
 # ---
 
+st.subheader("Search results")
+
+#buffer into session
+
 buffer = io.BytesIO()
+st.session_state['buffer']=buffer
 st.dataframe(df_out, hide_index=True, use_container_width= True)
 
-with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-    df_out.to_excel(writer, sheet_name='Sheet1')
-    st.download_button(
-        label="Download Excel worksheets",
-        data=buffer,
-        file_name="pandas_multiple.xlsx",
-        mime="application/vnd.ms-excel"
-    )
 
+#Below is the code used for the page Export
+
+# col3, col4= st.columns(2)
+
+# with col3:
+#     st.text("*Here will be the saved results*")
+#     try:
+#         #replace the search result param by selected
+#         df_saved = pd.DataFrame(search_result)
+#         df_saved_out = df_saved[['id', 'title', 'author', 'date', 'source', 'text']]
+#     except:
+#         df_saved_out = pd.DataFrame(search_result)
+
+# with col4:
+#     st.info('Export the Saved Result', icon="ℹ️")
+#     with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+#         df_out.to_excel(writer, sheet_name='Sheet1')
+#         st.download_button(
+#             label="Download Excel worksheets",
+#             data=buffer,
+#             file_name="pandas_multiple.xlsx",
+#             mime="application/vnd.ms-excel"
+#         )
