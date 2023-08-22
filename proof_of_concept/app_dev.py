@@ -88,7 +88,7 @@ def load_data():
         item["embedding"] = embedder.encode(item["text"], convert_to_tensor=False)
     return database
 
-@st.cache_data
+
 def apply_topic_filter(database, score_threshold):
     search_result = []
     for item in database: 
@@ -174,7 +174,7 @@ if "output_df" not in st.session_state:
 
 if st.button("Append search result"):
     # update dataframe state
-    st.session_state.output_df = pd.concat([st.session_state.output_df, df_new], axis=0, ignore_index=True).drop_duplicates(subset='id', keep="last")
+    st.session_state.output_df = pd.concat([st.session_state.output_df, df_out], axis=0, ignore_index=True).drop_duplicates(subset='id', keep="last")
     
     st.text("Updated dataframe")
 

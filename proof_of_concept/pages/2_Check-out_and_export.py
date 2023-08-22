@@ -4,7 +4,7 @@ import io
 
 
 try:
-    st.dataframe(st.session_state.output_df)
+    st.dataframe(st.session_state.output_df, use_container_width=True)
     buffer = io.BytesIO()
 
     with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
