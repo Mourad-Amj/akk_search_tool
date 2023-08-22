@@ -83,6 +83,7 @@ def get_all_data(link, session):
 
     data["source"] = "Documents Parlemantaire Récents"
 
+    data["keywords"] = ""
     keywords_finding = soup2.find_all("td")
     for i, all_keywords in enumerate(keywords_finding):
         if all_keywords.text.strip() == "Descripteurs Eurovoc":
