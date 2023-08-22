@@ -9,14 +9,14 @@ try:
     try:
         st.write("Agenda: ")
         st.session_state.agenda_df=st.session_state.agenda_df[['r', 'level', 'type', 'issue', 'date', 'authors', 'url', 'status']]
-        st.dataframe(st.session_state.agenda_df, use_container_width=True)
+        st.session_state.agenda_df = st.data_editor(st.session_state.agenda_df, num_rows = "dynamic", use_container_width=True)
     except:
         st.subheader("No Agenda to export")
         st.text("Agenda will appear once a search result is appended")
     try:
         st.write("Looking back: ")    
         st.session_state.output_df=st.session_state.output_df[['id', 'title', 'author', 'date', 'source', 'text']]
-        st.dataframe(st.session_state.output_df, use_container_width=True)
+        st.session_state.output_df=st.data_editor(st.session_state.output_df, num_rows = "dynamic", use_container_width=True)
     except:
         st.subheader("No data to export")
         st.text("Data will appear once a search result is appended")
@@ -29,15 +29,14 @@ try:
         output.to_excel(writer, sheet_name='Sheet1')
         writer.close()
 
-            st.download_button(
-                label="Download Excel worksheets",
-                data=buffer,
-                file_name="output_df.xlsx",
-                mime="application/vnd.ms-excel"
-            )
+        st.download_button(
+            label="Download Excel worksheets",
+            data=buffer,
+            file_name="output_df.xlsx",
+            mime="application/vnd.ms-excel"
+        )
 
 except:
     st.subheader("No data to export")
     st.text("Data will appear once a search has been processed")
-  
   
