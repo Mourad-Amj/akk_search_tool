@@ -11,7 +11,7 @@ import xlsxwriter
 from sentence_transformers import SentenceTransformer, util
 import datetime
 
-
+st.set_page_config(page_title = "Search engine")
 # initialization
 st.title("PoC: lachambre.be custom search engine")
 
@@ -19,7 +19,149 @@ st.title("PoC: lachambre.be custom search engine")
 
 
 
-
+@st.cache_data
+def load_agenda():
+    database=[{'r': """Banking
+Services""",
+            'level': """Federal
+Parliament
+(Plenary
+Session)""",
+            'type': """Law Proposal """,
+            'issue': """Proposition de loi modifiant le Code de droit
+économique en ce qui concerne la garantie
+du service bancaire de base aux travailleurs
+migrants. (3345)""",
+            'date': """17/05/2023""",
+            'authors': ["Ben Segers (Vooruit)"],
+            'url': "https://www.lachambre.be/emeeting/?organ=plen&status=final&date=2023-05-17&number=1",
+            'status': """Will be taken
+into
+consideration"""
+            }, {'r': """Banking Sector""",
+            'level': """Walloon
+Parliament
+(Plenary
+Session)""",
+            'type': """ Vote on
+motions""",
+            'issue': """- La dégradation de l'accès à l'argent
+liquide
+- Les incertitudes pesant sur l'accès aux
+distributeurs bancaires
+- La responsabilité du Gouvernement
+wallon dans la réduction excessive du
+nombre de distributeurs de billets""",
+            'date': """17/05/2023""",
+            'authors': ["""John Beugnies
+(PTB)
+Benoit Dispa (Les
+Engagés)
+André Antoine (Les
+Engagés)
+Eric Lomba (PS)
+Sybille de Coster-
+Bauchau (MR)
+Rodrigue Demeuse
+(Ecolo)"""],
+            'url': "http://nautilus.parlement-wallon.be/Archives/2022_2023/ODJS/odjs20230517.pdf",
+            'status': """Will be voted
+on."""
+            }, {'r': """Sustainable
+Mobility &
+Environment""",
+            'level': """Walloon
+Parliament
+(Environment
+Committee)""",
+            'type': """ Oral
+Question""",
+            'issue': """La réutilisation et le recyclage des éléments -
+des voitures électriques""",
+            'date': """16/05/2023""",
+            'authors': ["""François Bellot
+(MR)
+Walloon Minister
+of Environment,
+Celine Tellier
+(Ecolo)"""],
+            'url': "http://nautilus.parlement-wallon.be/Archives/2022_2023/ODJC/odjc170.pdf",
+            'status': """"""
+            }, {'r': """Home Loan""",
+            'level': """Walloon
+Parliament""",
+            'type': """Oral
+Question""",
+            'issue': """L'impact de la hausse des taux d'intérêt des
+crédits hypothécaires sur l'accès à la propriété""",
+            'date': """16/05/2023""",
+            'authors': ["Jaqueline Galant (MR)"],
+            'url': "http://nautilus.parlement-wallon.be/Archives/2022_2023/ODJC/odjc169.pdf",
+            'status': """"""
+            }, {'r': """Energy
+Transition""",
+            'level': """Walloon
+Parliament
+(Energy
+Committee)""",
+            'type': """ Oral
+Question""",
+            'issue': """Le manque d’actions pour relever les défis
+de la transition énergétique en Wallonie""",
+            'date': """16/05/2023""",
+            'authors': ["""François
+Desquesnes (Les
+Engagés)
+Walloon Minister
+of Energy and
+Climate, Philippe
+Henry (Ecolo)"""],
+            'url': "http://nautilus.parlement-wallon.be/Archives/2022_2023/ODJC/odjc164.pdf",
+            'status': """"""
+            }, {'r': """Green
+Certificates""",
+            'level': """Walloon
+Parliament
+(Energy
+Committee)""",
+            'type': """ Oral
+Question""",
+            'issue': """Les mesures de soutien au secteur de la
+biométhanisation malgré la réduction de
+l'enveloppe des
+certificats verts""",
+            'date': """16/05/2023""",
+            'authors': ["""Rachel Sobry (MR)
+Walloon Minister
+of Energy and
+Climate, Philippe
+Henry (Ecolo)"""],
+            'url': "http://nautilus.parlement-wallon.be/Archives/2022_2023/ODJC/odjc164.pdf",
+            'status': """"""
+            }, {'r': """Energy
+Transition""",
+            'level': """Walloon
+Parliament
+(Energy
+Committee)""",
+            'type': """Oral
+Question""",
+            'issue': """Les perspectives de création d'emplois liées -
+à la transition énergétique""",
+            'date': """16/05/2023""",
+            'authors': ["""Eddy Fontaine (PS)
+Walloon Minister
+of Energy and
+Climate, Philippe
+Henry (Ecolo)"""],
+            'url': "http://nautilus.parlement-wallon.be/Archives/2022_2023/ODJC/odjc164.pdf",
+            'status': """"""
+            }]
+    
+    embedder = SentenceTransformer('all-MiniLM-L6-v2')
+    for item in database:
+        item["embedding"] = embedder.encode(item["issue"], convert_to_tensor=False)
+    return database
 
 @st.cache_data
 def load_data():
@@ -88,7 +230,7 @@ def load_data():
         item["embedding"] = embedder.encode(item["text"], convert_to_tensor=False)
     return database
 
-@st.cache_data
+
 def apply_topic_filter(database, score_threshold):
     search_result = []
     for item in database: 
@@ -109,59 +251,106 @@ def apply_date_filter(database, start_date, end_date):
             search_result.append(item)
     return search_result
     
-# ---
+# ----------------------------------------------------------------------
 # Load environment
-# ---
+# ----------------------------------------------------------------------
 
+agenda = load_agenda()
 database = load_data()
+
+
+# ----------------------------------------------------------------------
+# Parameters
+# ----------------------------------------------------------------------
+
+language = st.radio(
+    "Output language: ",
+    ('fr', 'nl'))
+
+# ----------------------------------------------------------------------
+### Filters sub-section
+# ----------------------------------------------------------------------
+
+st.subheader("Filters")
+col1, col2= st.columns(2)
 
 # ---
 # Search filter
 # ---
 
 # Text field + processing query
+
+with col2:
+    # Slider to tune the threshold on cos similarity
+    score_threshold = st.slider('Filtering threshold: ', 0.0, 0.5, 0.35)
+    st.write("Cosine similarity set at", score_threshold)
+    st.info('Filter by relevance', icon="ℹ️")
+    
+# Date filter 
+with col1:
+# Date filter 
+    #st.date_input("test date",format="DD/MM/YYYY")
+
+    # Initializing default dates settings. Runs once.
+    if 'start_date' not in st.session_state:
+        st.session_state['start_date'] = datetime.date.today() - datetime.timedelta(days=730)
+    if 'end_date' not in st.session_state:
+        st.session_state['end_date'] = datetime.date.today()
+    # Creating the widgets.    
+    start_date = st.date_input('Start date', st.session_state['start_date'], format="DD/MM/YYYY")
+    end_date = st.date_input('End date', st.session_state['end_date'], format="DD/MM/YYYY")
+    if start_date < end_date:
+        st.success('Start date (default: 2 weeks ago): `%s`\n\nEnd date (default: today):`%s`' % (start_date, end_date))
+    else:
+        st.error('Error: End date must fall after start date.')
+
+    # Update session state when dates are changed
+    if start_date != st.session_state['start_date']:
+        st.session_state['start_date'] = start_date
+    if end_date != st.session_state['end_date']:
+        st.session_state['end_date'] = end_date
+
+ 
+# Applying the filters
+
 embedder = SentenceTransformer('all-MiniLM-L6-v2')
 search = st.text_input('Type your search')
 query_embedding = embedder.encode(search, convert_to_tensor=False)
 
-# Slider to tune the threshold on cos similarity
-score_threshold = st.slider('Filtering threshold: ', 0.0, 0.5, 0.35)
-st.write("Cosine similarity set at", score_threshold)
 
-# Date filter 
-start_date = st.date_input('Start date', datetime.date.today() - datetime.timedelta(days=15))
-end_date = st.date_input('End date', datetime.date.today())
-if start_date < end_date:
-    st.success('Start date (default: 2 weeks ago): `%s`\n\nEnd date (default: today):`%s`' % (start_date, end_date))
-else:
-    st.error('Error: End date must fall after start date.')
-    
-# Applying the filters
-
-search_result = apply_topic_filter(apply_date_filter(database, start_date, end_date), score_threshold)
+agenda_search = apply_topic_filter(apply_date_filter(agenda, start_date, end_date), score_threshold)
+doc_search = apply_topic_filter(apply_date_filter(database, start_date, end_date), score_threshold)
 
 try:
-    df_temp = pd.DataFrame(search_result)
+    agenda_temp = pd.DataFrame(agenda_search)
+    agenda_out = agenda_temp[['r', 'level', 'type', 'issue', 'date', 'authors', 'url', 'status']]
+except:
+    agenda_out = pd.DataFrame(agenda_search)
+
+try:
+    df_temp = pd.DataFrame(doc_search)
     df_out = df_temp[['id', 'title', 'author', 'date', 'source', 'text']]
 except:
-    df_out = pd.DataFrame(search_result)
+    df_out = pd.DataFrame(doc_search)
 
-# ---    
-# Outputting an .xlsx file
-# ---
+st.write("Agenda: ")
+agenda_out = st.data_editor(agenda_out, hide_index=True, num_rows = "dynamic", use_container_width= True)
+st.write("Looking back: ")
+df_out = st.data_editor(df_out, hide_index=True, num_rows = "dynamic", use_container_width= True)
+if "agenda_df" not in st.session_state:
+    st.session_state['agenda_df'] = pd.DataFrame(columns=['r', 'level', 'type', 'issue', 'date', 'authors', 'url', 'status'])
 
-buffer = io.BytesIO()
-st.dataframe(df_out, hide_index=True, use_container_width= True)
+if "output_df" not in st.session_state:
+    st.session_state['output_df'] = pd.DataFrame(columns=['id', 'title', 'author', 'date', 'source', 'text'])
 
-with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-    df_out.to_excel(writer, sheet_name='Sheet1')
-    st.download_button(
-        label="Download Excel worksheets",
-        data=buffer,
-        file_name="pandas_multiple.xlsx",
-        mime="application/vnd.ms-excel"
-    )
 
+if st.button("Append search result"):
+    # update dataframe state
+    st.session_state.agenda_df = pd.concat([st.session_state.agenda_df, agenda_out], axis=0, ignore_index=True).drop_duplicates(subset='issue', keep="last")
+    st.session_state.output_df = pd.concat([st.session_state.output_df, df_out], axis=0, ignore_index=True).drop_duplicates(subset='id', keep="last")
+
+    
+    st.text("Updated dataframe")
 
 
 
