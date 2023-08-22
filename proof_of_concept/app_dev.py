@@ -46,7 +46,7 @@ st.title("PoC: lachambre.be custom search engine")
 
 
 
-@st.cache_data
+#@st.cache_data
 # def load_agenda():
 #     database=[{'r': """Banking
 # Services""",
@@ -190,7 +190,7 @@ st.title("PoC: lachambre.be custom search engine")
 #         item["embedding"] = embedder.encode(item["issue"], convert_to_tensor=False)
 #     return database
 
-@st.cache_data
+#@st.cache_data
 # def load_data():
 #     database=[{'id':  "55K3152",
 #             'title':    "Projet de loi relatif à l'approche administrative communale, à la mise en place d'une enquête d'intégrité communale et portant création d'une Direction chargée de l'Évaluation de l'Intégrité pour les Pouvoirs publics.",
