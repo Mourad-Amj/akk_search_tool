@@ -87,7 +87,7 @@ def get_all_data(link, session):
     keywords_finding = soup2.find_all("td")
     for i, all_keywords in enumerate(keywords_finding):
         if all_keywords.text.strip() == "Descripteurs Eurovoc":
-            keywords = keywords_finding[i + 1].text.split(", ")
+            keywords = keywords_finding[i + 1].text.split(", ").strip(" | ")
             data["keywords"] = keywords
 
     data["fr_text"] = ""

@@ -11,10 +11,10 @@ from src import (
     rapports_deposes_execution_loi,
 )
 
-def main() :
-    
+
+def main():
+    pass
+
 
 if __name__ == "__main__":
     main()
-
-
