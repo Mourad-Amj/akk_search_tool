@@ -42,7 +42,7 @@ def extract_agenda_data(link):
         print(f"Failed to fetch agenda XML from link: {link}")
         return []
 
-xml_url = "https://www.lachambre.be/emeeting/api/meetings/week/2023/28/calendar.xml"
+xml_url = "https://www.lachambre.be/emeeting/api/meetings/week/2023/29/calendar.xml"
 response = requests.get(xml_url)
 
 if response.status_code == 200:
