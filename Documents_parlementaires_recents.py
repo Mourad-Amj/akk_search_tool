@@ -115,7 +115,7 @@ def get_all_data(link, session):
 
 def save_file(data):
     with open("data/Documents_parlementaires_récents.json", "w") as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=4, ensure_ascii=False)
 
 
 def main():
