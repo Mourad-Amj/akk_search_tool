@@ -1,27 +1,4 @@
-# Streamlit proof of concept
-# Run this with 
-# python -m streamlit run proof_of_concept/app.py
-
-# imports
-import streamlit as st
-import pandas as pd
-import io
-import xlsxwriter
-
-from sentence_transformers import SentenceTransformer, util
-import datetime
-
-st.set_page_config(page_title = "Search engine")
-# initialization
-st.title("PoC: lachambre.be custom search engine")
-
-# Creating test .jsons
-
-
-
-@st.cache_data
-def load_agenda():
-    database=[{'r': """Banking
+agenda=[{'r': """Banking
 Services""",
             'level': """Federal
 Parliament
@@ -157,15 +134,8 @@ Henry (Ecolo)"""],
             'url': "http://nautilus.parlement-wallon.be/Archives/2022_2023/ODJC/odjc164.pdf",
             'status': """"""
             }]
-    
-    embedder = SentenceTransformer('all-MiniLM-L6-v2')
-    for item in database:
-        item["embedding"] = embedder.encode(item["issue"], convert_to_tensor=False)
-    return database
 
-@st.cache_data
-def load_data():
-    database=[{'id':  "55K3152",
+docs=[{'id':  "55K3152",
             'title':    "Projet de loi relatif à l'approche administrative communale, à la mise en place d'une enquête d'intégrité communale et portant création d'une Direction chargée de l'Évaluation de l'Intégrité pour les Pouvoirs publics.",
             'text': "Ces dernières années, la criminalité organisée et déstabilisante n’a cessé de s’immiscer dans le tissu social. Certaines entreprises sont utilisées comme couverture pour le blanchiment d’argent et le commerce illégal. Les villes et les communes détectent souvent ces problèmes ou ces circonstances à un stade précoce. Cependant, au niveau local, le cadre juridique actuel n’est pas suffisant pour traiter ces problèmes de manière adéquate. La transmission des informations pertinentes aux pouvoirs locaux est ainsi souvent incomplète et/ ou fragmentée. Il semble également difficile pour les pouvoirs locaux de faire appliquer certaines mesures de police administrative. Ce nouveau projet de loi relatif à l’approche administrative communale fournit un cadre juridique clair et complet à cet égard. Le présent projet de loi vise à fournir aux pouvoirs locaux une base juridique spécifique pour prendre des mesures en vue d’empêcher la criminalité déstabilisante. Le projet de loi prévoit notamment la possibilité pour les pouvoirs locaux de mener une enquête d’intégrité approfondie sur l’implantation ou l’exploitation d’établissements accessibles au public dans le cadre de certains secteurs et activités économiques et prévoit, sur base du résultat de cette enquête, de refuser, suspendre ou abroger le permis d’implantation ou d’exploitation ou de fermer l’établissement. En outre, le projet de loi crée une Direction chargée de l’Évaluation de l’Intégrité pour les Pouvoirs publics (DEIPP) qui aura accès aux données et informations pertinentes pouvant être intégrées dans un avis aux pouvoirs locaux, prévoit un ensemble d’outils permettant de mieux faire respecter des mesures de police administratives comme les fermetures, et développe davantage les Centres d’Information et d’Expertise d’Arrondissement (CIEAR). Le projet de loi s’inspire du cadre juridique existant aux Pays-Bas.",
             'source':   "Chambre des représentants de Belgique",
@@ -225,131 +195,12 @@ def load_data():
             'source':  "Chambre des représentants de Belgique" ,
             'date': "13/06/2023",
             'author': ["Gouvernement/Regering"]}]
-    embedder = SentenceTransformer('all-MiniLM-L6-v2')
-    for item in database:
-        item["embedding"] = embedder.encode(item["text"], convert_to_tensor=False)
-    return database
 
+import json
+	
+# Data to be writte
+with open("agenda_test.json", "w") as file:
+   json.dump(agenda, file)
 
-def apply_topic_filter(database, score_threshold):
-    search_result = []
-    for item in database: 
-        cos_score = util.cos_sim(item["embedding"], query_embedding)[0]
-        condition = cos_score.abs()
-        if condition > score_threshold :
-            search_result.append(item)
-    return search_result
-
-@st.cache_data
-def apply_date_filter(database, start_date, end_date):
-    search_result = []
-    for item in database: 
-        item_date = datetime.datetime.strptime(item['date'], '%d/%m/%Y').date()
-        if item_date < start_date or item_date > end_date:
-            continue
-        else:
-            search_result.append(item)
-    return search_result
-    
-# ----------------------------------------------------------------------
-# Load environment
-# ----------------------------------------------------------------------
-
-agenda = load_agenda()
-database = load_data()
-
-
-# ----------------------------------------------------------------------
-# Parameters
-# ----------------------------------------------------------------------
-
-language = st.radio(
-    "Output language: ",
-    ('fr', 'nl'))
-
-# ----------------------------------------------------------------------
-### Filters sub-section
-# ----------------------------------------------------------------------
-
-st.subheader("Filters")
-col1, col2= st.columns(2)
-
-# ---
-# Search filter
-# ---
-
-# Text field + processing query
-
-with col2:
-    # Slider to tune the threshold on cos similarity
-    score_threshold = st.slider('Filtering threshold: ', 0.0, 0.5, 0.35)
-    st.write("Cosine similarity set at", score_threshold)
-    st.info('Filter by relevance', icon="ℹ️")
-    
-# Date filter 
-with col1:
-# Date filter 
-    #st.date_input("test date",format="DD/MM/YYYY")
-
-    # Initializing default dates settings. Runs once.
-    if 'start_date' not in st.session_state:
-        st.session_state['start_date'] = datetime.date.today() - datetime.timedelta(days=730)
-    if 'end_date' not in st.session_state:
-        st.session_state['end_date'] = datetime.date.today()
-    # Creating the widgets.    
-    start_date = st.date_input('Start date', st.session_state['start_date'], format="DD/MM/YYYY")
-    end_date = st.date_input('End date', st.session_state['end_date'], format="DD/MM/YYYY")
-    if start_date < end_date:
-        st.success('Start date (default: 2 weeks ago): `%s`\n\nEnd date (default: today):`%s`' % (start_date, end_date))
-    else:
-        st.error('Error: End date must fall after start date.')
-
-    # Update session state when dates are changed
-    if start_date != st.session_state['start_date']:
-        st.session_state['start_date'] = start_date
-    if end_date != st.session_state['end_date']:
-        st.session_state['end_date'] = end_date
-
- 
-# Applying the filters
-
-embedder = SentenceTransformer('all-MiniLM-L6-v2')
-search = st.text_input('Type your search')
-query_embedding = embedder.encode(search, convert_to_tensor=False)
-
-
-agenda_search = apply_topic_filter(apply_date_filter(agenda, start_date, end_date), score_threshold)
-doc_search = apply_topic_filter(apply_date_filter(database, start_date, end_date), score_threshold)
-
-try:
-    agenda_temp = pd.DataFrame(agenda_search)
-    agenda_out = agenda_temp[['r', 'level', 'type', 'issue', 'date', 'authors', 'url', 'status']]
-except:
-    agenda_out = pd.DataFrame(agenda_search)
-
-try:
-    df_temp = pd.DataFrame(doc_search)
-    df_out = df_temp[['id', 'title', 'author', 'date', 'source', 'text']]
-except:
-    df_out = pd.DataFrame(doc_search)
-
-st.write("Agenda: ")
-st.dataframe(agenda_out, hide_index=True, use_container_width= True)
-st.write("Looking back: ")
-st.dataframe(df_out, hide_index=True, use_container_width= True)
-if "agenda_df" not in st.session_state:
-    st.session_state['agenda_df'] = pd.DataFrame(columns=['r', 'level', 'type', 'issue', 'date', 'authors', 'url', 'status'])
-
-if "output_df" not in st.session_state:
-    st.session_state['output_df'] = pd.DataFrame(columns=['id', 'title', 'author', 'date', 'source', 'text'])
-
-
-if st.button("Append search result"):
-    # update dataframe state
-    st.session_state.output_df = pd.concat([st.session_state.output_df, df_out], axis=0, ignore_index=True).drop_duplicates(subset='id', keep="last")
-    st.session_state.agenda_df = pd.concat([st.session_state.agenda_df, agenda_out], axis=0, ignore_index=True).drop_duplicates(subset='issue', keep="last")
-    
-    st.text("Updated dataframe")
-
-
-
+with open("docs_test.json", "w") as file:
+   json.dump(docs, file)
