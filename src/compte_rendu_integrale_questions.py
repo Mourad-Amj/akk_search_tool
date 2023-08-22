@@ -101,13 +101,11 @@ for row in rows:
                     print(h2_tag.span)
                 question_text = ""
                 for p_tag in h2_tag.find_next_siblings("p"):
-                    if re.compile(r"\d\d.\d\d").search(p_tag.text):
-                        if politician_asking in p_tag.text:
-                            for next_p_tag in p_tag.find_next_siblings(p_tag):
-                                if not re.compile(r"\d\d.\d\d").search(next_p_tag.text):
-                                    question_text += next_p_tag.text
-                    else:
-                        break
+                    if re.compile(r"\d\d.\d\d").search(p_tag.text) and politician_asking in p_tag.text :
+                        for next_p_tag in p_tag.find_next_siblings(p_tag):
+                            if not re.compile(r"\d\d.\d\d").search(next_p_tag.text):
+                                question_text += next_p_tag.text
+                   
                 print(question_text)    
                                                 
 
