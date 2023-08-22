@@ -157,3 +157,119 @@ with open("data/questions_test.json", "w") as fout:
 
 
 
+
+# questions = []
+
+# test_url = "https://www.lachambre.be/doc/CCRI/html/55/ic1162x.html"
+# test_response = requests.get(test_url)
+# test_soup = bs(test_response.content, "html.parser")
+# for h2_tag in test_soup.find_all("h2"):
+#     text = h2_tag.text.replace(u'\xa0', u'').replace(u'\r', u'').replace(u'\n', u'')
+      
+#     question_code_flag = 0
+#     if (
+#         re.compile(r"\(\d{8}\w\)").search(text) != None
+#     ):  # verify that the question title text has the document code, example (55036821C)
+#         if (
+#             question_code_flag == 2
+#         ):  # condition to stop if two different question titles have the same document code
+#             question_code_flag = 0
+#             continue
+#         else:
+#             question_code = text.split()[-1]
+#             question_code_flag = 1
+#             # Sometimes the first question has FR and the second NL and vice versa, this is a check for it.
+
+#             try:
+#                 if h2_tag.span["lang"] == "FR":
+#                     question_FR = text
+#                     start_with = text.split("à")[0]
+                   
+#                     end_with = text.split("à")[1]
+#                     politician_adressed = end_with.split("(")[0].strip()
+#                     if "Question de" in start_with:
+#                         politician_asking = start_with.split("de")[1].strip()
+#                     elif  "-" in start_with:
+#                         politician_asking = " ".join(start_with.split()[1:])    
+#                 elif h2_tag.span["lang"] == "NL":
+#                     question_NL = text
+#                     start_with = text.split("aan")[0].strip()
+#                     end_with = text.split("aan")[1].strip()
+#                     politician_adressed = end_with.split("(")[0].strip()
+#                     if "Vraag van" in start_with:
+#                         politician_asking = start_with.split("Vraag van")[1].strip()
+#                     elif  "-" in start_with:
+#                         politician_asking = " ".join(start_with.split()[1:]).strip()     
+    
+#             except:
+#                 print("problem with span lang attribute.")
+#                 print(h2_tag.span)
+            
+#             question_text = ""
+#             counter = 0
+#             for p_tag in h2_tag.find_next_siblings("p"):
+#                 p_text = p_tag.text.replace(u'\xa0', u'').replace(u'\r', u'').replace(u'\n', u'')
+                
+#                 if re.compile(r'\d\d.\d\d').search(p_text) and politician_asking in p_text:
+#                     if counter == 1:
+#                         counter = 0
+#                         continue
+#                     else:
+#                         question_text += p_text
+#                         text_start = p_text.split()[0]
+#                         print(text_start)
+#                         counter += 1
+#                     for next_p_tag in p_tag.find_next_siblings("p"):
+#                         next_p_text = next_p_tag.text.replace(u'\xa0', u'').replace(u'\r', u'').replace(u'\n', u'')
+#                         if re.compile(r'\d\d.\d\d').search(next_p_text) and (next_p_text.split()[0] != text_start or politician_asking in next_p_text) :
+#                             break
+#                         else:
+#                             question_text += next_p_text
+
+            
+            
+                
+                        
+#             for next_h2_tag in h2_tag.find_next_siblings("h2"):
+#                 next_text = next_h2_tag.text.strip()
+#                 if question_code in next_text:
+#                     question_code_flag = 2
+#                     try:
+#                         if next_h2_tag.span["lang"] == "FR":
+#                             question_FR = next_text
+#                         elif next_h2_tag.span["lang"] == "NL":
+#                             question_NL = next_text
+#                     except:
+#                         print("problem with span lang attribute.")
+#                         print(h2_tag.span)
+#                     questions.append(
+#                             {
+#                                 "title": "",
+#                                 "document_number": "",
+#                                 "date": "",
+#                                 "document_page_url": "main_url",
+#                                 "main-title": "",
+#                                 "link_to_document": "",
+#                                 "keywords": "",
+#                                 "source": "",
+#                                 "commissionchambre": '',
+#                                 "fr_text": question_FR,
+#                                 "nl_text": question_NL,
+#                                 "stakeholders": [
+#                                     politician_asking,
+#                                     politician_adressed,
+#                                 ],
+#                                 "question_text" : question_text,
+#                                 "status": "",
+#                                 "title_embedding": [],
+#                                 "fr_text_embedding": [],
+#                                 "nl_text_embedding": [],
+#                                 "topic": "",
+#                                 "policy level": "",
+#                                 "type": "",
+#                                 "issue": "",
+#                                 "reference": "",
+#                             }
+#                         )
+                    
+#                     break    
