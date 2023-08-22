@@ -317,7 +317,6 @@ embedder = SentenceTransformer('all-MiniLM-L6-v2')
 search = st.text_input('Type your search')
 query_embedding = embedder.encode(search, convert_to_tensor=False)
 
-
 agenda_search = apply_topic_filter(apply_date_filter(agenda, start_date, end_date), score_threshold)
 doc_search = apply_topic_filter(apply_date_filter(database, start_date, end_date), score_threshold)
 
@@ -334,9 +333,15 @@ except:
     df_out = pd.DataFrame(doc_search)
 
 st.write("Agenda: ")
-agenda_out = st.data_editor(agenda_out, hide_index=True, num_rows = "dynamic", use_container_width= True)
+try:
+    agenda_out = st.data_editor(agenda_out, hide_index=True, num_rows = "dynamic", use_container_width= True)
+except:
+    st.write("Empty agenda")
 st.write("Looking back: ")
-df_out = st.data_editor(df_out, hide_index=True, num_rows = "dynamic", use_container_width= True)
+try:
+    df_out = st.data_editor(df_out, hide_index=True, num_rows = "dynamic", use_container_width= True)
+except:
+    st.write("Empty log")
 if "agenda_df" not in st.session_state:
     st.session_state['agenda_df'] = pd.DataFrame(columns=['r', 'level', 'type', 'issue', 'date', 'authors', 'url', 'status'])
 
