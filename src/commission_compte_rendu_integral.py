@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import csv
 import pymongo
+import json
 def get_text(text_link,session):
     french_text = ""
     dutch_text = ""
@@ -98,11 +99,8 @@ with open("Commission_rendu_intégral.csv", "w", newline="", encoding="utf-8") a
         writer.writeheader()
         writer.writerows(link_list)"""
 
-mongodb_url = "mongodb://localhost:27017"
-database_name = "lachambre_database"
-collection_name = "commission_collection"    
-client = pymongo.MongoClient(mongodb_url)
-database = client[database_name]    
-collection = database[collection_name]
-collection.insert_many(link_list)
-client.close()
+json_filename = "commission_compte_rendu_integral.json"
+with open(json_filename, mode='w', encoding='utf-8') as json_file:
+    json.dump(link_list, json_file, indent=4, ensure_ascii=False)
+        
+    print(f"Extracted data saved to '{json_filename}'")
