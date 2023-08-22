@@ -72,7 +72,7 @@ def get_all_data(link, session):
             "fr_text_embedding": [],  # preprocess -> not for engineers
             "nl_text_embedding": [],  # preprocess -> not for engineers
             "topic": "",  # preprocess -> not for engineers
-            "policy level": "",  # preprocess -> not for engineers
+            "policy_level": "",  # preprocess -> not for engineers
             "type": "",  # preprocess -> not for engineers
             "issue": "",  # preprocess -> not for engineers
             "reference": "",  # preprocess -> not for engineers
@@ -91,7 +91,7 @@ def get_all_data(link, session):
 
 
 def save_file(data):
-    with open("data/New_Documents_Parlementaires_Récents.json", "w") as f:
+    with open("data/new_documents_parlementaires_recents.json", "w") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
 

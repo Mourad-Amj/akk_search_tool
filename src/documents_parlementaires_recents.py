@@ -83,6 +83,7 @@ def get_all_data(link, session):
 
     data["source"] = "Documents Parlemantaire Récents"
 
+    data["keywords"] = ""
     keywords_finding = soup2.find_all("td")
     for i, all_keywords in enumerate(keywords_finding):
         if all_keywords.text.strip() == "Descripteurs Eurovoc":
@@ -96,7 +97,7 @@ def get_all_data(link, session):
     data["fr_text_embedding"] = []  # preprocess -> not for engineers
     data["nl_text_embedding"] = []  # preprocess -> not for engineers
     data["topic"] = ""  # preprocess -> not for engineers
-    data["policy level"] = ""  # preprocess -> not for engineers
+    data["policy_level"] = ""  # preprocess -> not for engineers
     data["type"] = ""  # preprocess -> not for engineers
     data["issue"] = ""  # preprocess -> not for engineers
     data["reference"] = ""  # preprocess -> not for engineers
@@ -114,7 +115,7 @@ def get_all_data(link, session):
 
 
 def save_file(data):
-    with open("data/Documents_parlementaires_récents.json", "w") as f:
+    with open("data/documents_parlementaires_recents.json", "w") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
 
