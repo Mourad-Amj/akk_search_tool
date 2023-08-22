@@ -107,6 +107,19 @@ def apply_date_filter(database, start_date, end_date):
         else:
             search_result.append(item)
     return search_result
+
+def callback():
+    edited_rows = st.session_state["data_editor"]["edited_rows"]
+    rows_to_delete = []
+
+    for idx, value in edited_rows.items():
+        if value["x"] is True:
+            rows_to_delete.append(idx)
+    
+    #print("df: ", st.session_state["saved_df"])
+    #modify the session state 
+    st.session_state["modified_df"] = st.session_state["modified_df"].drop(rows_to_delete, axis=0).reset_index(drop=True)
+    #df_out = df_out.drop(rows_to_delete, axis=0).reset_index(drop=True)
     
 # ---
 # Load environment
@@ -164,45 +177,28 @@ search_result = apply_topic_filter(apply_date_filter(database, start_date, end_d
 try:
     df_temp = pd.DataFrame(search_result)
     df_out = df_temp[['id', 'title', 'author', 'date', 'source', 'text']]
+
+
+    st.subheader("Search results")
     
-    #implementing session state
-    st.session_state['saved_df'] = df_out
-except:
+    edited_df = st.data_editor(df_out, num_rows="dynamic")
+    st.session_state['edited_df']= edited_df
+
+
+#buffer into session
+
+    buffer = io.BytesIO()
+    st.session_state['buffer']=buffer
+   
+    
+    
+except KeyError as key:
+    print("key error: ", key)
     df_out = pd.DataFrame(search_result)
 
 # ---    
 # Outputting an .xlsx file
 # ---
 
-st.subheader("Search results")
-
-#buffer into session
-
-buffer = io.BytesIO()
-st.session_state['buffer']=buffer
-st.dataframe(df_out, hide_index=True, use_container_width= True)
 
 
-#Below is the code used for the page Export
-
-# col3, col4= st.columns(2)
-
-# with col3:
-#     st.text("*Here will be the saved results*")
-#     try:
-#         #replace the search result param by selected
-#         df_saved = pd.DataFrame(search_result)
-#         df_saved_out = df_saved[['id', 'title', 'author', 'date', 'source', 'text']]
-#     except:
-#         df_saved_out = pd.DataFrame(search_result)
-
-# with col4:
-#     st.info('Export the Saved Result', icon="ℹ️")
-#     with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-#         df_out.to_excel(writer, sheet_name='Sheet1')
-#         st.download_button(
-#             label="Download Excel worksheets",
-#             data=buffer,
-#             file_name="pandas_multiple.xlsx",
-#             mime="application/vnd.ms-excel"
-#         )
