@@ -72,7 +72,7 @@ def get_all_data(link, session):
             "fr_text_embedding": [],  # preprocess -> not for engineers
             "nl_text_embedding": [],  # preprocess -> not for engineers
             "topic": "",  # preprocess -> not for engineers
-            "policy level": "",  # preprocess -> not for engineers
+            "policy_level": "",  # preprocess -> not for engineers
             "type": "",  # preprocess -> not for engineers
             "issue": "",  # preprocess -> not for engineers
             "reference": "",  # preprocess -> not for engineers
