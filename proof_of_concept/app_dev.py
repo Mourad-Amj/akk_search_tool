@@ -334,9 +334,9 @@ except:
     df_out = pd.DataFrame(doc_search)
 
 st.write("Agenda: ")
-st.dataframe(agenda_out, hide_index=True, use_container_width= True)
+agenda_out = st.data_editor(agenda_out, hide_index=True, num_rows = "dynamic", use_container_width= True)
 st.write("Looking back: ")
-st.dataframe(df_out, hide_index=True, use_container_width= True)
+df_out = st.data_editor(df_out, hide_index=True, num_rows = "dynamic", use_container_width= True)
 if "agenda_df" not in st.session_state:
     st.session_state['agenda_df'] = pd.DataFrame(columns=['r', 'level', 'type', 'issue', 'date', 'authors', 'url', 'status'])
 
@@ -346,8 +346,9 @@ if "output_df" not in st.session_state:
 
 if st.button("Append search result"):
     # update dataframe state
-    st.session_state.output_df = pd.concat([st.session_state.output_df, df_out], axis=0, ignore_index=True).drop_duplicates(subset='id', keep="last")
     st.session_state.agenda_df = pd.concat([st.session_state.agenda_df, agenda_out], axis=0, ignore_index=True).drop_duplicates(subset='issue', keep="last")
+    st.session_state.output_df = pd.concat([st.session_state.output_df, df_out], axis=0, ignore_index=True).drop_duplicates(subset='id', keep="last")
+
     
     st.text("Updated dataframe")
 
