@@ -99,6 +99,18 @@ for row in rows:
                 except:
                     print("problem with span lang attribute.")
                     print(h2_tag.span)
+                question_text = ""
+                for p_tag in h2_tag.find_next_siblings("p"):
+                    if re.compile(r"\d\d.\d\d").search(p_tag.text):
+                        if politician_asking in p_tag.text:
+                            for next_p_tag in p_tag.find_next_siblings(p_tag):
+                                if not re.compile(r"\d\d.\d\d").search(next_p_tag.text):
+                                    question_text += next_p_tag.text
+                    else:
+                        break
+                print(question_text)    
+                                                
+
 
                 for next_h2_tag in h2_tag.find_next_siblings("h2"):
                     next_text = next_h2_tag.text.strip()
@@ -146,64 +158,4 @@ with open("data/questions_test.json", "w") as fout:
     json.dump(questions, fout, ensure_ascii=False)
 
 
-# for h2_tag in soup.find_all("h2"):
-#     text = h2_tag.text.strip()
-#     question_code_flag = 0
-#     if re.compile(r'\(\d{8}\w\)').search(text) != None: # verify that the question title text has the document code, example (55036821C)
-#         if question_code_flag == 2: # condition to stop if two different question titles have the same document code
-#             question_code_flag = 0
-#             continue
-#         else:
-#             question_code = text.split()[-1]
-#             question_code_flag = 1
-#             # Sometimes the first question has FR and the second NL and vice versa, this is a check for it.
-#             if h2_tag.span['lang'] == "FR":
-#                 question_FR = " ".join(text.split())
-#                 start_with = text.split("à")[0]
-#                 if "Question de" in start_with:
-#                     politician_asking = start_with.split("de")[1]
-#             elif h2_tag.span['lang'] == "NL":
-#                 question_NL = " ".join(text.split())
-#                 start_with = text.split("aan")[0]
-#                 if "Vraag van" in start_with:
-#                     politician_asking = start_with.split("van")[1]
 
-#             if re.compile(r"^\-").search(start_with):
-#                 politician_asking = " ".join(start_with.split()[1:])
-#             # logic to get the question text of only the specific question
-
-#             # p_tags = h2_tag.find_next_siblings("p")
-#             # question_text = ""
-
-#             # for p_tag in p_tags:
-#             #     p_tag_text = p_tag.text.strip()
-#             #     # politician_flag = 0
-#             #     if politician_asking in p_tag_text:
-#             #         # if politician_flag == 1:
-#             #         #     politician_flag = 0
-#             #         #     continue
-#             #         # else:
-#             #         question_text += p_tag_text
-#             #             # politician_flag = 1
-
-#             #         next_p_tags = p_tag.find_next_siblings("p")
-#             #         for next_p_tag in next_p_tags:
-#             #             next_p_text = next_p_tag.text.strip()
-#             #             if re.compile(r"^\d\d.\d\d").search(next_p_text) and politician_asking not in next_p_text :
-#             #                 break
-#             #             else:
-#             #                 question_text += next_p_text
-#             # Ensuring there are no double entries
-#             for next_h2_tag in h2_tag.find_next_siblings('h2'):
-#                 next_text = next_h2_tag.text.strip()
-#                 if question_code in next_text:
-#                     question_code_flag = 2
-#                     if next_h2_tag.span['lang'] == "FR":
-#                         question_FR = " ".join(next_text.split())
-#                     elif next_h2_tag.span['lang'] == "NL":
-#                         question_NL = " ".join(next_text.split())
-#                     questions.append({'question_FR': question_FR, 'question_NL': question_NL, 'question_text' : question_text})
-#                     break
-
-# for question in questions:
-#     print(question)
