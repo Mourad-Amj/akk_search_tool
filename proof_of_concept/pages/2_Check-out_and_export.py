@@ -4,6 +4,7 @@ import io
 
 
 try:
+    st.session_state.output_df=st.session_state.output_df[['id', 'title', 'author', 'date', 'source', 'text']]
     st.dataframe(st.session_state.output_df, use_container_width=True)
     buffer = io.BytesIO()
 
