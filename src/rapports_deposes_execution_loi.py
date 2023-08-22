@@ -19,5 +19,5 @@ df_content.columns = df_titles.iloc[0].tolist()
 
 # Export to json file
 df_content.to_json(
-    "rapports_deposes_execution_loi.json", orient="records", force_ascii=False
+    "data/rapports_deposes_execution_loi.json", orient="records", force_ascii=False
 )

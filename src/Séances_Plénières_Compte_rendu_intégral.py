@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import csv
 import pymongo
+import json
 
 def get_text(text_link,session):
     french_text = ""
@@ -57,11 +58,12 @@ for row in rows:
     name=row_elements[0].text.strip()
     unpro_date=row_elements[5].text.strip()
     date=date_convert(unpro_date)
-    french_text,dutch_text=get_text(text_link,session)
+    
 
     pda_link='https://www.lachambre.be'+ row_elements[8]['href']
     text_link='https://www.lachambre.be'+ row_elements[9]['href']
     version=row_elements[11].text.strip()
+    french_text,dutch_text=get_text(text_link,session)
 
     data_dict={
             "First Title":"Séances Plénières",
@@ -83,12 +85,8 @@ with open("Compte_rendu_intégral.csv", "w", newline="", encoding="utf-8") as cs
         writer.writeheader()
         writer.writerows(link_list)"""
  
-mongodb_url = "mongodb://localhost:27017"
-database_name = "lachambre_database"
-collection_name = "Séance plénière_collection"    
-client = pymongo.MongoClient(mongodb_url)
-database = client[database_name]    
-collection = database[collection_name]
-collection.insert_many(link_list)
-client.close()
-
+json_filename = "Séances_Plénières_Compte_rendu_intégral.json"
+with open(json_filename, mode='w', encoding='utf-8') as json_file:
+    json.dump(link_list, json_file, indent=4, ensure_ascii=False)
+        
+    print(f"Extracted data saved to '{json_filename}'")

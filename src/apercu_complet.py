@@ -54,5 +54,5 @@ for group_document_url in group_document_urls:
                 document_dict[header] = content
         document_list.append(document_dict)
 
-with open("apercu_complet.json", "w") as fout:
+with open("data/apercu_complet.json", "w") as fout:
     json.dump(document_list, fout)
