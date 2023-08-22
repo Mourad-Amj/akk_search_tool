@@ -29,28 +29,50 @@ for link in contenu_link:
 
 
 data_list = []
-for main_link in tqdm.tqdm(contenu_links):
+for main_link in contenu_links:
     main_response = requests.get(main_link)
     main_soup = bs(main_response.text, "html.parser")
-    
     links = main_soup.find_all("div", class_=["linklist_0", "linklist_1"])
-    for div in links:
-        link = div.find("a")
-        if link is not None:
-            href = link.get("href")
+    for link in links:
+        final_link = link.find("a")
+        if final_link is not None:
+            href = final_link.get("href")
             full_link = LINK_PREFIX + "/kvvcr/" + href
-            
+            data_dict = {}
             response = requests.get(full_link)
             soup = bs(response.text, "html.parser")
             
             title = clean_unicode(soup.find("h1").text.strip())
         
-            data = {
-                'Full_link': full_link,
-                'Title': title
-            }
-            
-    data_list.append(data)
+            data_dict["page_url"] = full_link
+            data_dict["title"] = title
+            document_table = soup.find("table")
+            for rows in document_table.select("tr"):
+                cells = rows.find_all("td", recursive=False)
+                header = " ".join(cells[0].text.split())
+                if not header and not cells[1].text.strip():
+                    continue
+
+                for cell in cells:
+                    if cell.find("table"):
+                        cell.decompose()
+                        continue
+                    content = " ".join(cell.text.split())
+
+                if header == "Publication question" or "Publication réponse":
+                    try:
+                        link = rows.find("a").get("href")
+                        full_link = "https://www.lachambre.be" + link
+                        data_dict[header] = full_link
+                    except:
+                        data_dict[header] = content
+                else:
+                    data_dict[header] = content
+                
+            data_list.append(data_dict)
+
+
+                
 
 with open ("data/bulletin.json","w", encoding="utf-8") as f:
-    json.dump(data, f, indent=4, ensure_ascii=False)
+    json.dump(data_list, f, indent=4, ensure_ascii=False)

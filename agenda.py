@@ -102,7 +102,7 @@ for meeting in meetings:
 
 
 # Save the combined data as a CSV file
-csv_filename = "agenda_data.csv"
+csv_filename = "data/agenda_data.csv"
 with open(csv_filename, mode='w', newline='', encoding='utf-8') as csv_file:
     fieldnames = ["title", "date", "time",  "room", "description", "annex_label", "annex_link"]
     writer = csv.DictWriter(csv_file, fieldnames=fieldnames)

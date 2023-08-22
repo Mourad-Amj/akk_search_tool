@@ -136,5 +136,5 @@ for row in rows:
                         )
                         break
 
-with open("seances_plenieres_questions_test.json", "w") as fout:
+with open("data/seances_plenieres_questions_test.json", "w") as fout:
     json.dump(questions, fout, ensure_ascii=False)
