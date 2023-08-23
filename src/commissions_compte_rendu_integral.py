@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup as bs
 import re
-import json
+import time
 import pandas as pd
 import numpy as np
 import pymongo
@@ -9,15 +9,17 @@ import certifi
 import os
 from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer, util
+
 # import torch
+start_time = time.perf_counter()
 
 load_dotenv()
 connection = os.getenv("MONGODB_URI")
 client = pymongo.MongoClient(connection, tlsCAFile=certifi.where())
 db = client["akkanto_db"]
-col = db["commision_compte_rendu_questions_test"]
+col = db["commissions_compte_rendu_integral"]
 
-#pre-processing functions
+# pre-processing functions
 
 committees_dico = {
     "Commission Affaires sociales, Emploi et Pensions": "Social Affairs, Employment and Pensions Committee",
@@ -33,6 +35,7 @@ committees_dico = {
     "Commission Santé et Egalité des chances": "Health and Equal Opportunities Commission",
 }
 
+
 def get_policylevel(source, commissionchambre):
     if "doucement parlementaire" not in source.lower():
         for key in committees_dico:
@@ -43,16 +46,20 @@ def get_policylevel(source, commissionchambre):
                 policylevel = f"Federal Parliament ({committees_dico[key]})"
                 return policylevel
 
+
 def get_type():
     type = "Oral Question"
     return type
+
 
 def get_issue(main_text):
     sample = main_text.split('"')
     output = f'"{sample[-2]}"{sample[-1]}'
     return output
 
+
 members = pd.read_csv("src/Belgian_Parliament_Members.csv")
+
 
 def party_name(stakeholder):
     for index, value in members["Representative"].items():
@@ -63,26 +70,30 @@ def party_name(stakeholder):
         else:
             continue
 
-def get_stakeholders(stakeholders):
-    stakeholder1 = stakeholders[0]
-    stakeholder2 = stakeholders[1]
-    stakeholders = (
-        f"{stakeholder1}({party_name(stakeholder1)}),{stakeholder2}({party_name(stakeholder2)})"
-    )
-    return stakeholders
+
+def get_stakeholders(stakeholder):
+    party_name_politician = party_name(stakeholder)
+    if party_name_politician == None:
+        return stakeholder
+    else:
+        stakeholder_final = f"{stakeholder} ({party_name(stakeholder)})"
+        return stakeholder_final
 
 
 embedder = SentenceTransformer("sentence-transformers/LaBSE")
 
+
 def compute_embedding(doc):
     # tag = embedding
-    if doc == "" :
-        return np.array([0]*768).astype(np.float32).tolist()
-    else :
+    if doc == "":
+        return np.array([0] * 768).astype(np.float32).tolist()
+    else:
         embedded_text = embedder.encode(doc, convert_to_tensor=False).tolist()
         return embedded_text
 
-#scraping
+
+# scraping
+
 
 def date_convert(date: str) -> str:
     date_dict = {
@@ -109,9 +120,9 @@ main_url = "https://www.lachambre.be/kvvcr/showpage.cfm?section=/cricra&language
 main_response = requests.get(main_url)
 soup = bs(main_response.content, "html.parser")
 
-questions = []
+
 rows = soup.find_all("tr", valign="top")
-for row in rows[:2]: # Don't forgert to remove slicing
+for row in rows:
     new_elements = row.findChildren()
     pdf_link = "https://www.lachambre.be" + new_elements[0].find("a")["href"]
     name = new_elements[0].text.strip()
@@ -140,10 +151,12 @@ for row in rows[:2]: # Don't forgert to remove slicing
         question_response = requests.get(text_link)
     except:
         print("Not a valid url.")
-     
+
     question_soup = bs(question_response.content, "html.parser")
-    
-    for h2_tag in question_soup.find_all("h2"): # remmeber to reaplce with question_soup
+
+    for h2_tag in question_soup.find_all(
+        "h2"
+    ):  # remmeber to reaplce with question_soup
         text = h2_tag.text.strip()
         question_code_flag = 0
         if (
@@ -181,8 +194,7 @@ for row in rows[:2]: # Don't forgert to remove slicing
                 except:
                     print("problem with span lang attribute.")
                     print(h2_tag.span)
-                 
-                                                
+
                 for next_h2_tag in h2_tag.find_next_siblings("h2"):
                     next_text = next_h2_tag.text.strip()
                     if question_code in next_text:
@@ -195,46 +207,60 @@ for row in rows[:2]: # Don't forgert to remove slicing
                         except:
                             print("problem with span lang attribute.")
                             print(h2_tag.span)
-                        existing_document = col.find_one({"document_number": name,"fr_source": main_title})    
+
+                        existing_document = col.find_one(
+                            {"fr_main_title": get_issue(question_FR)}
+                        )
                         if existing_document:
-                            print("Document with the same doc_number already exists.")
-                            
+                            print("A document with this question already exists.")
+                            print(get_issue(question_FR))
+                            print()
                         else:
                             document_dict = {}
                             document_dict["title"] = main_title
                             document_dict["document_number"] = name
                             document_dict["date"] = date
                             document_dict["document_page_url"] = main_url
-                            document_dict["fr_main_title"] = get_issue(question_FR) #should be later used to display the issue
+                            document_dict["fr_main_title"] = get_issue(
+                                question_FR
+                            )  # should be later used to display the issue
                             document_dict["nl_main_title"] = get_issue(question_NL)
                             document_dict["link_to_document"] = pdf_link
                             document_dict["keywords"] = ""
-                            document_dict["source"] = main_title
+                            document_dict[
+                                "fr_source"
+                            ] = "Commissions Compte rendu intégral"
                             document_dict["commissionchambre"] = commission
                             document_dict["fr_text"] = ""
                             document_dict["nl_text"] = ""
-                            document_dict["stakeholders"] = get_stakeholders([politician_asking
-                                                                  politician_adressed])
+                            document_dict["fr_stakeholders"] = (
+                                get_stakeholders(politician_asking)
+                                + ", "
+                                + get_stakeholders(politician_adressed)
+                            )
                             document_dict["status"] = ""
-                            document_dict["title_embedding"] = compute_embedding(main_title)
+                            document_dict["title_embedding"] = compute_embedding(
+                                main_title
+                            )
                             document_dict["fr_text_embedding"] = compute_embedding("")
                             document_dict["nl_text_embedding"] = compute_embedding("")
-                                document_dict["fr_main_title_embedding": compute_embedding(question_FR),
-                                "nl_main_title_embedding": compute_embedding(question_NL),
-                                "topic": "",
-                                "policy_level": get_policylevel(main_title,commission),
-                                "type": get_type(),
-                                "reference": "",
-                       
+                            document_dict["fr_title_embedding"] = compute_embedding(
+                                question_FR
+                            )
+                            document_dict["nl_title_embedding"]: compute_embedding(
+                                question_NL
+                            )
+                            document_dict["topic"] = ""
+                            document_dict["policy_level"] = get_policylevel(
+                                main_title, commission
+                            )
+                            document_dict["type"] = get_type()
+
+                            print("Adding document with question : ")
+                            print(document_dict["fr_main_title"])
+                            print()
+                            col.insert_one(document_dict)
                         break
 
-with open("data/commision_compte_rendu_questions_test.json", "w") as fout:
-    json.dump(questions, fout, ensure_ascii=False)
-
-
-
-
-
-
-                         
-          
+end_time = time.perf_counter()
+print(round(end_time - start_time, 2), "seconds")
