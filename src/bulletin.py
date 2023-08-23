@@ -136,37 +136,43 @@ def formatted_data_nl(data):
             "descripteursEurovoc": data.get("Eurovoc-descriptoren", ""),
         } 
     
-    keywords = []
-    if nl_data["descripteurEurovocprincipal"] in nl_data.values():
-        keywords.append(nl_data["descripteurEurovocprincipal"].title()) 
-    if nl_data["descripteursEurovoc"] in nl_data.values():
-        descripteurs = nl_data["descripteursEurovoc"].title().split('|')
-        keywords.extend(descripteurs)
-    if nl_data["nl_keywords"] in nl_data.values():
-        descripteurs = nl_data["nl_keywords"].title().split('|')
-        keywords.extend(descripteurs)
-    formatted_list = []
-    for item in keywords:
-        cleaned_item = item.strip()
-        if " " in cleaned_item:
-            cleaned_item = cleaned_item.title()
-        else:
-            cleaned_item = cleaned_item.capitalize()
-        formatted_list.append(cleaned_item)
-    nl_data["nl_keywords"] = list(set(formatted_list))
+    existing_document = col.find_one({"document_number": nl_data["document_number"],"nl_source":"Bulletins vragen en antwoorden"})
 
-    policy_level = nl_data["commissionchambre"].title()
-    nl_data["policy_level"] = f'Federal Parliament ({policy_level})'
-    
-    def embed(text, model):
-        text_embedding = model.encode(text)
-        return text_embedding
-    nl_data["nl_title_embedding"] = embed(nl_data["nl_main_title"], model=model).tolist()
-    nl_data["nl_text_embedding"] = embed(nl_data["nl_text"], model=model).tolist()
+    if existing_document:
+        print("Document with the same doc_number already exists.") 
 
-    return nl_data
+    else:
+        keywords = []
+        if nl_data["descripteurEurovocprincipal"] in nl_data.values():
+            keywords.append(nl_data["descripteurEurovocprincipal"].title()) 
+        if nl_data["descripteursEurovoc"] in nl_data.values():
+            descripteurs = nl_data["descripteursEurovoc"].title().split('|')
+            keywords.extend(descripteurs)
+        if nl_data["nl_keywords"] in nl_data.values():
+            descripteurs = nl_data["nl_keywords"].title().split('|')
+            keywords.extend(descripteurs)
+        formatted_list = []
+        for item in keywords:
+            cleaned_item = item.strip()
+            if " " in cleaned_item:
+                cleaned_item = cleaned_item.title()
+            else:
+                cleaned_item = cleaned_item.capitalize()
+            formatted_list.append(cleaned_item)
+        nl_data["nl_keywords"] = list(set(formatted_list))
 
-def scrapping_data(full_link, session) :
+        policy_level = nl_data["commissionchambre"].title()
+        nl_data["policy_level"] = f'Federal Parliament ({policy_level})'
+        
+        def embed(text, model):
+            text_embedding = model.encode(text)
+            return text_embedding
+        nl_data["nl_title_embedding"] = embed(nl_data["nl_main_title"], model=model).tolist()
+        nl_data["nl_text_embedding"] = embed(nl_data["nl_text"], model=model).tolist()
+
+        col.insert_one(nl_data)
+
+def scrapping_data(full_link, session):
 
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
     response = session.get(full_link, headers=headers)
