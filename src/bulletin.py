@@ -122,28 +122,26 @@ def formatted_data_nl(data):
     nl_data = {
             "nl_title": data["Titel"],
             "document_number": data["title"],
-            "date": data.get("Termijndatum", ""),
             "document_page_url": data["page_url"],
             "nl_main_title": data["Vraag"],
-            "link_to_document": data.get("Publicatie vraag", "") or data.get("Publicatie antwoord", ""),
             "nl_keywords": data.get("Vrije trefwoorden", ""),
-            "nl_source": "Bulletins vragen en antwoorden",
-            "commissionchambre": data["Departement"],
+            "nl_source": "Bulletins Vragen en Antwoorden",
+            "commissiekamer": data["Departement"],
             "nl_text": data.get("Antwoord", ""),
             "nl_stakeholders": data.get("Auteur", ""),
             "nl_status": data["Status vraag"],
-            "nl_title_embedding": [],
-            "nl_text_embedding": [],
             "descripteurEurovocprincipal": data.get("Eurovoc-hoofddescriptor", ""),
             "descripteursEurovoc": data.get("Eurovoc-descriptoren", ""),
         } 
     
-    existing_document = col.find_one({"document_number": nl_data["document_number"],"nl_source":"Bulletins vragen en antwoorden"})
+    update = {"document_number": (re.search(r': (\d+)', nl_data["document_number"])[1])}
+    nl_data.update(update)
+    
+    existing_record = col.find_one({"fr_source": "Bulletins des Questions et Réponses Ecrites", "document_number": nl_data["document_number"],  "nl_source": {"$in": ["", None]}})
 
-    if existing_document:
-        print("Document with the same doc_number already exists.") 
+    # existing_document = col.find_one({"document_number": nl_data["document_number"],"nl_source":"Bulletins Vragen en Antwoorden"})
 
-    else:
+    if existing_record:
         keywords = []
         if nl_data["descripteurEurovocprincipal"] in nl_data.values():
             keywords.append(nl_data["descripteurEurovocprincipal"].title()) 
@@ -161,9 +159,10 @@ def formatted_data_nl(data):
             else:
                 cleaned_item = cleaned_item.capitalize()
             formatted_list.append(cleaned_item)
-        nl_data["nl_keywords"] = list(set(formatted_list))
+        new_keywords = {"nl_keywords": list(set(formatted_list))}
+        nl_data.update(new_keywords)
 
-        policy_level = nl_data["commissionchambre"].title()
+        policy_level = nl_data["commissiekamer"].title()
         nl_data["policy_level"] = f'Federal Parliament ({policy_level})'
         
         def embed(text, model):
@@ -171,8 +170,14 @@ def formatted_data_nl(data):
             return text_embedding
         nl_data["nl_title_embedding"] = embed(nl_data["nl_main_title"], model=model).tolist()
         nl_data["nl_text_embedding"] = embed(nl_data["nl_text"], model=model).tolist()
+        nl_data.pop("descripteurEurovocprincipal", None)
+        nl_data.pop("descripteursEurovoc", None)
+        # col.insert_one(nl_data)
 
-        col.insert_one(nl_data)
+        update_result = col.update_one(
+                {"_id": existing_record["_id"]},
+                {"$set": nl_data}
+            )
 
 def scrapping_data(full_link, session):
 
@@ -202,10 +207,10 @@ def scrapping_data(full_link, session):
                 file = data_dict[header][1:]
                 data_dict[header] = f"https://www.lachambre.be/QRVA/pdf/{legislature}/{legislature}K0{file}.pdf"
 
-    return formatted_data_fr(data_dict)
+    return formatted_data_nl(data_dict)
 
 
-def main(language='fr'):
+def main(language='nl'):
     root_url = f"https://www.lachambre.be/kvvcr/showpage.cfm?&language={language}&cfm=/site/wwwcfm/qrva/qrvaList.cfm?legislat=55"
 
     with requests.Session() as session :
@@ -213,8 +218,8 @@ def main(language='fr'):
         full_links = chain.from_iterable(thread_map(partial(scrape_url, session=session), links))
         print("done getting full links")
         all_data = list(map(partial(scrapping_data, session=session), progress_bar(full_links))) # 1h30 total time
-"""    with open(f"data/bulletin_{language}.json", "w", encoding="utf-8") as f:
-        json.dump(all_data, f, indent=4, ensure_ascii=False)"""
+    # with open(f"data/bulletin_{language}.json", "w", encoding="utf-8") as f:
+    #     json.dump(all_data, f, indent=4, ensure_ascii=False)
 
 if __name__ == "__main__":
     fire.Fire(main)
