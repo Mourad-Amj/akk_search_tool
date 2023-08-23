@@ -2,7 +2,77 @@ import requests
 from bs4 import BeautifulSoup as bs
 import re
 import json
+import pandas as pd
+import numpy as np
+from sentence_transformers import SentenceTransformer, util
+# import torch
 
+#pre-processing functions
+
+committees_dico = {
+    "Commission Affaires sociales, Emploi et Pensions": "Social Affairs, Employment and Pensions Committee",
+    "Commission Constitution et Renouveau institutionnel": "Constitution and Institutional Renewal Commission",
+    "Commission Défense nationale": "National Defense Committee",
+    "Commission Economie, Protection des consommateurs et Agenda numérique": "Economy, Consumer Protection and Digital Agenda Committee",
+    "Commission Energie, Environnement et Climat": "Energy, Environment and Climate Committee",
+    "Commission Finances et Budget": "Finance and Budget Committee",
+    "Commission Intérieur, Sécurité, Migration et Matières administratives": "Internal, Security, Migration and Administrative Matters Committee",
+    "Commission Justice": "Justice Committee",
+    "Commission Mobilité, Entreprises publiques et Institutions fédérales": "Mobility, Public Enterprises and Federal Institutions Committee",
+    "Commission Relations extérieures": "External Relations Committee",
+    "Commission Santé et Egalité des chances": "Health and Equal Opportunities Commission",
+}
+
+def get_policylevel(source, commissionchambre):
+    if "doucement parlementaire" not in source.lower():
+        for key in committees_dico:
+            commission_list = [
+                word for word in commissionchambre.split(" ") if word[0].isupper()
+            ]
+            if commission_list[1] in key:
+                policylevel = f"Federal Parliament ({committees_dico[key]})"
+                return policylevel
+
+def get_type():
+    type = "Oral Question"
+    return type
+
+def get_issue(main_text):
+    sample = main_text.split('"')
+    output = f'"{sample[-2]}"{sample[-1]}'
+    return output
+
+members = pd.read_csv("src/Belgian_Parliament_Members.csv")
+
+def party_name(stakeholder):
+    for index, value in members["Representative"].items():
+        # print(type(value))
+        if value.lower() in stakeholder.lower():
+            stakeholder_final = f"{members.loc[index, 'Party']}"
+            return stakeholder_final
+        else:
+            continue
+
+def get_stakeholders(stakeholders):
+    stakeholder1 = stakeholders[0]
+    stakeholder2 = stakeholders[1]
+    stakeholders = (
+        f"{stakeholder1}({party_name(stakeholder1)}),{stakeholder2}({party_name(stakeholder2)})"
+    )
+    return stakeholders
+
+
+embedder = SentenceTransformer("sentence-transformers/LaBSE")
+
+def compute_embedding(doc):
+    # tag = embedding
+    if doc == "" :
+        return np.array([0]*768).astype(np.float32).tolist()
+    else :
+        embedded_text = embedder.encode(doc, convert_to_tensor=False).tolist()
+        return embedded_text
+
+#scraping
 
 def date_convert(date: str) -> str:
     date_dict = {
@@ -31,7 +101,7 @@ soup = bs(main_response.content, "html.parser")
 
 questions = []
 rows = soup.find_all("tr", valign="top")
-for row in rows:
+for row in rows[:2]:
     new_elements = row.findChildren()
     pdf_link = "https://www.lachambre.be" + new_elements[0].find("a")["href"]
     name = new_elements[0].text.strip()
@@ -60,8 +130,10 @@ for row in rows:
         question_response = requests.get(text_link)
     except:
         print("Not a valid url.")
+     
     question_soup = bs(question_response.content, "html.parser")
-    for h2_tag in question_soup.find_all("h2"):
+    
+    for h2_tag in question_soup.find_all("h2"): # remmeber to reaplce with question_soup
         text = h2_tag.text.strip()
         question_code_flag = 0
         if (
@@ -99,17 +171,8 @@ for row in rows:
                 except:
                     print("problem with span lang attribute.")
                     print(h2_tag.span)
-                question_text = ""
-                for p_tag in h2_tag.find_next_siblings("p"):
-                    if re.compile(r"\d\d.\d\d").search(p_tag.text) and politician_asking in p_tag.text :
-                        for next_p_tag in p_tag.find_next_siblings(p_tag):
-                            if not re.compile(r"\d\d.\d\d").search(next_p_tag.text):
-                                question_text += next_p_tag.text
-                   
-                print(question_text)    
+                 
                                                 
-
-
                 for next_h2_tag in h2_tag.find_next_siblings("h2"):
                     next_text = next_h2_tag.text.strip()
                     if question_code in next_text:
@@ -128,32 +191,31 @@ for row in rows:
                                 "document_number": name,
                                 "date": date,
                                 "document_page_url": main_url,
-                                "fr_main_title": question_FR ,
-                                "nl_main_title": question_NL,
+                                "fr_main_title": get_issue(question_FR), #should be later used to display the issue
+                                "nl_main_title": get_issue(question_NL),
                                 "link_to_document": pdf_link,
                                 "keywords": "",
                                 "source": main_title,
                                 "commissionchambre": commission,
                                 "fr_text": "",
                                 "nl_text": "",
-                                "stakeholders": [
-                                    politician_asking,
-                                    politician_adressed,
-                                ],
+                                "stakeholders": get_stakeholders([politician_asking,
+                                                                  politician_adressed]),
                                 "status": "",
-                                "title_embedding": [],
-                                "fr_text_embedding": [],
-                                "nl_text_embedding": [],
+                                "title_embedding": compute_embedding(main_title),
+                                "fr_text_embedding": compute_embedding(""),
+                                "nl_text_embedding": compute_embedding(""),
+                                "fr_main_title_embedding": compute_embedding(question_FR),
+                                "nl_main_title_embedding": compute_embedding(question_NL),
                                 "topic": "",
-                                "policy level": "",
-                                "type": "",
-                                "issue": "",
+                                "policy_level": get_policylevel(main_title,commission),
+                                "type": get_type(),
                                 "reference": "",
                             }
                         )
                         break
 
-with open("data/questions_test.json", "w") as fout:
+with open("data/commision_compte_rendu_questions_test.json", "w") as fout:
     json.dump(questions, fout, ensure_ascii=False)
 
 
