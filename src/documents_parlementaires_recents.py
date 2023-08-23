@@ -29,30 +29,21 @@ def get_all_data(link, session):
     response2 = session.get(link)
     soup2 = bs(response2.text, "html.parser")
 
-    data["document_page_url"] = link
+    document_page_url = link
+    document_number = link.split("=")[7]
+    title = soup2.find("center").text.strip()
+    main_title = soup2.find_all("center")[1].text.strip()
 
-    finding_document_number = link.split("=")[7]
-    data["document_number"] = finding_document_number
-
-    finding_first_title = soup2.find("center")
-    first_title = finding_first_title.text.strip()
-    data["title"] = first_title
-
-    finding_main_title = soup2.find_all("center")
-    main_title = finding_main_title[1].text.strip()
-    data["main_title"] = main_title
-
+    date = ""
     finding_date = soup2.find_all("td")
-    regex = r"\d{1,2}/\d{1,2}/\d{1,4}"
+    regex_date = r"\d{1,2}/\d{1,2}/\d{1,4}"
     for i, all_dates in enumerate(finding_date):
         dates = all_dates.text.strip()
-        if match := re.search(regex, dates, re.IGNORECASE):
-            data["date"] = match[0]
+        if match := re.search(regex_date, dates, re.IGNORECASE):
+            date = match[0]
+            break
 
-    finding_url_pdf = soup2.select("a[href*=lachambre]")
-    url_pdf_cleansing = finding_url_pdf[0]
-    url_pdf = url_pdf_cleansing.attrs.get("href")
-    data["link_to_document"] = url_pdf
+    finding_url_pdf = soup2.select("a[href*=lachambre]")[0].attrs.get("href")
 
     type_of_document = []
     finding_type_de_document = soup2.select("td", {"class": "td0x"})
@@ -61,15 +52,17 @@ def get_all_data(link, session):
             type_of_document.append(
                 " ".join(finding_type_de_document[i + 1].text.split(", "))
             )
-    data["typededocument"] = " ".join(type_of_document[0].split(" ")[1:])
+            break
 
+    stakeholders = ""
     finding_auteurs = soup2.find_all("td", class_="td0x")
     for i, all_auteurs in enumerate(finding_auteurs):
         if "(AUTEUR)" in all_auteurs.text.strip():
             auteurs = finding_auteurs[i].text.replace("(AUTEUR)", "").strip()
-            data["stakeholders"] = auteurs
+            stakeholders = auteurs
             break
 
+    commisionchambre = ""
     finding_commission = soup2.find_all("td", class_="td0x")
     for i, commissions in enumerate(finding_commission):
         if "(PUBLIC)" in commissions.text.strip():
@@ -78,38 +71,49 @@ def get_all_data(link, session):
                 .replace("PRESIDENT CHAMBRE", "")
                 .split("\r")[0]
             )
-            data["commissionchambre"] = all_commissions
+            commisionchambre = all_commissions
             break
 
-    data["source"] = "Documents Parlemantaire Récents"
-
-    data["keywords"] = ""
+    keywords = ""
     keywords_finding = soup2.find_all("td")
     for i, all_keywords in enumerate(keywords_finding):
         if all_keywords.text.strip() == "Descripteurs Eurovoc":
             keywords = keywords_finding[i + 1].text.split(", ")
-            data["keywords"] = keywords
+            break
 
-    data["fr_text"] = ""
-    data["nl_text"] = ""
-    data["status"] = ""
-    data["title_embedding"] = []  # preprocess -> not for engineers
-    data["fr_text_embedding"] = []  # preprocess -> not for engineers
-    data["nl_text_embedding"] = []  # preprocess -> not for engineers
-    data["topic"] = ""  # preprocess -> not for engineers
-    data["policy_level"] = ""  # preprocess -> not for engineers
-    data["type"] = ""  # preprocess -> not for engineers
-    data["issue"] = ""  # preprocess -> not for engineers
-    data["reference"] = ""  # preprocess -> not for engineers
-    data["maindocuments"] = ""
-    data["descripteurEurovocprincipal"] = ""
-    data["descripteursEurovoc"] = ""
-    data["seancepleinierechambre"] = ""
-    data["compťtence"] = ""
-    data["1_commissionchambre"] = ""
-    data["2_commissionchambre"] = ""
-    data["1_seancepleinierechambre"] = ""
-    data["2_seancepleinierechambre"] = ""
+    data = {
+        "title": title,
+        "document_number": document_number,
+        "date": date,
+        "document_page_url": document_page_url,
+        "main_title": main_title,
+        "link_to_document": finding_url_pdf,
+        "keywords": keywords,
+        "source": "Documents Parlemantaire Récents",
+        "commissionchambre": commisionchambre,
+        "fr_text": "",
+        "nl_text": "",
+        "stakeholders": stakeholders,
+        "status": "",
+        "title_embedding": [],
+        "fr_text_embedding": [],
+        "nl_text_embedding": [],
+        "topic": "",
+        "policy_level": "",
+        "type": "",
+        "issue": "",
+        "reference": "",
+        "maindocuments": "",
+        "typededocument": " ".join(type_of_document[0].split(" ")[1:]),
+        "descripteurEurovocprincipal": "",
+        "descripteursEurovoc": "",
+        "seancepleinierechambre": "",
+        "compťtence": "",
+        "1_commissionchambre": "",
+        "2_commissionchambre": "",
+        "1_seancepleinierechambre": "",
+        "2_seancepleinierechambre": "",
+    }
 
     return data
 

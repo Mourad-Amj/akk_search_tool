@@ -101,13 +101,11 @@ for row in rows:
                     print(h2_tag.span)
                 question_text = ""
                 for p_tag in h2_tag.find_next_siblings("p"):
-                    if re.compile(r"\d\d.\d\d").search(p_tag.text):
-                        if politician_asking in p_tag.text:
-                            for next_p_tag in p_tag.find_next_siblings(p_tag):
-                                if not re.compile(r"\d\d.\d\d").search(next_p_tag.text):
-                                    question_text += next_p_tag.text
-                    else:
-                        break
+                    if re.compile(r"\d\d.\d\d").search(p_tag.text) and politician_asking in p_tag.text :
+                        for next_p_tag in p_tag.find_next_siblings(p_tag):
+                            if not re.compile(r"\d\d.\d\d").search(next_p_tag.text):
+                                question_text += next_p_tag.text
+                   
                 print(question_text)    
                                                 
 
@@ -126,17 +124,18 @@ for row in rows:
                             print(h2_tag.span)
                         questions.append(
                             {
-                                "title": "",
+                                "title": main_title,
                                 "document_number": name,
                                 "date": date,
                                 "document_page_url": main_url,
-                                "main-title": main_title,
+                                "fr_main_title": question_FR ,
+                                "nl_main_title": question_NL,
                                 "link_to_document": pdf_link,
                                 "keywords": "",
                                 "source": main_title,
                                 "commissionchambre": commission,
-                                "fr_text": question_FR,
-                                "nl_text": question_NL,
+                                "fr_text": "",
+                                "nl_text": "",
                                 "stakeholders": [
                                     politician_asking,
                                     politician_adressed,
@@ -159,3 +158,8 @@ with open("data/questions_test.json", "w") as fout:
 
 
 
+
+
+
+                         
+          

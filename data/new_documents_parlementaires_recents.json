@@ -1,5 +1,5 @@
-{
-    "2657": {
+[
+    {
         "title": "Proposition de loi modifiant la loi du 10 novembre 2006 relative aux heures d'ouverture dans le commerce, l'artisanat et les services en ce qui concerne les dérogations relatives au repos hebdomadaire et aux heures de fermeture obligatoires",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "2657",
@@ -32,14 +32,14 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3152": {
+    {
         "title": "Projet de loi relatif à l'approche administrative communale, à la mise en place d'une enquête d'intégrité communale et portant création d'une Direction chargée de l'Évaluation de l'Intégrité pour les Pouvoirs publics",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3152",
         "fr_text": "",
-        "date": "27/07/2023",
-        "link_to_document": "https://www.lachambre.be/site/wwwcfm/flwb/flwbcheckpdf.cfm?docn=55K3152012&language=fr",
-        "pdf id": "012",
+        "date": "17/08/2023",
+        "link_to_document": "https://www.lachambre.be/site/wwwcfm/flwb/flwbcheckpdf.cfm?docn=55K3152014&language=fr",
+        "pdf id": "014",
         "keywords": " ",
         "source": "Documents Parlementaires Récents",
         "commissionchambre": "",
@@ -55,7 +55,7 @@
         "issue": "",
         "reference": "",
         "maindocuments": "",
-        "typededocument": "RAPPORT COMPLEMENTAIRE",
+        "typededocument": "AVIS DU CONSEIL D'ETAT",
         "descripteurEurovocprincipal": "",
         "descripteursEurovoc": "",
         "seancepleinierechambre": "",
@@ -65,7 +65,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3522": {
+    {
         "title": "L'évolution de la dette de l'État fédéral - Audition de M",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3522",
@@ -98,7 +98,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3514": {
+    {
         "title": "Projet de loi droit de la procédure pénale I",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3514",
@@ -131,7 +131,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3520": {
+    {
         "title": "Projet de loi modifiant la loi du 7 mai 1999 portant création du Palais des Beaux-Arts sous la forme d'une société anonyme de droit public à finalité sociale et modifiant la loi du 30 mars 1995 concernant les réseaux de distribution d'émissions de radiodiffusion et l'exercice d'activités de radiodiffusion dans la région bilingue de Bruxelles-Capitale",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3520",
@@ -164,7 +164,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "1169": {
+    {
         "title": "Proposition de loi instaurant une taxe corona de solidarité sur les multimillionnaires",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "1169",
@@ -197,7 +197,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "2464": {
+    {
         "title": "Proposition de loi modifiant diverses dispositions en vue de la prescription à l'unité d'antibiotiques, de benzodiazépines et d'opioïdes pour limiter la surconsommation et le surdosage de ces médicaments",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "2464",
@@ -230,7 +230,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "2275": {
+    {
         "title": "Le démantèlement des centrales nucléaires - Audition du 1er juin 2021 avec les représentants de l'AFCN",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "2275",
@@ -263,7 +263,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3495": {
+    {
         "title": "Projet de loi portant des dispositions diverses en matière sociale",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3495",
@@ -296,7 +296,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3515": {
+    {
         "title": "Projet de loi portant diverses modifications du Code d'instruction criminelle II",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3515",
@@ -329,7 +329,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3459": {
+    {
         "title": "Projet de loi modifiant les articles VII",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3459",
@@ -362,7 +362,40 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3342": {
+    {
+        "title": "Projet de loi relatif à l'approche administrative communale, à la mise en place d'une enquête d'intégrité communale et portant création d'une Direction chargée de l'Évaluation de l'Intégrité pour les Pouvoirs publics",
+        "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
+        "document_number": "3152",
+        "fr_text": "",
+        "date": "27/07/2023",
+        "link_to_document": "https://www.lachambre.be/site/wwwcfm/flwb/flwbcheckpdf.cfm?docn=55K3152012&language=fr",
+        "pdf id": "012",
+        "keywords": " ",
+        "source": "Documents Parlementaires Récents",
+        "commissionchambre": "",
+        "nl_text": "",
+        "stakeholders": "",
+        "status": "",
+        "title_embedding": [],
+        "fr_text_embedding": [],
+        "nl_text_embedding": [],
+        "topic": "",
+        "policy_level": "",
+        "type": "",
+        "issue": "",
+        "reference": "",
+        "maindocuments": "",
+        "typededocument": "RAPPORT COMPLEMENTAIRE",
+        "descripteurEurovocprincipal": "",
+        "descripteursEurovoc": "",
+        "seancepleinierechambre": "",
+        "compťtence": "",
+        "1_commissionchambre": "",
+        "2_commissionchambre": "",
+        "1_seancepleinierechambre": "",
+        "2_seancepleinierechambre": ""
+    },
+    {
         "title": "Projet de loi portant modifications du Code des droits de succession et du Code des droits d'enregistrement, d'hypothèque et de greffe relatives à la délivrance de renseignements par les fonctionnaires de l'Administration générale de la documentation patrimoniale",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3342",
@@ -395,7 +428,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3464": {
+    {
         "title": "Projet de loi modifiant la loi du 21 mars 1991 portant réforme de certaines entreprises publiques économiques",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3464",
@@ -428,7 +461,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3493": {
+    {
         "title": "Résolution chargeant la Cour des comptes de réaliser un audit de la délivrance et du contrôle du permis unique - Application de l'article 76 du Règlement de la Chambre des représentants",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3493",
@@ -461,7 +494,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3446": {
+    {
         "title": "Projet de loi exécutant l'accord cadre dans le cadre des négociations interprofessionnelles pour la période 2023-2024",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3446",
@@ -494,7 +527,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3360": {
+    {
         "title": "Projet de loi modifiant le Code des impôts sur les revenus 1992 en ce qui concerne les indemnités octroyées à des artistes",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3360",
@@ -527,7 +560,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3422": {
+    {
         "title": "Projet de loi portant modification de la loi du 13 juin 2005 relative aux communications électroniques et portant réforme des tarifs sociaux",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3422",
@@ -560,7 +593,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3435": {
+    {
         "title": "Projet de loi concernant les normes de produit pour l'intégration d'énergie produite à partir de sources renouvelables dans les carburants fossiles destinés au secteur du transport et modifiant la loi du 29 avril 1999 relative à l'organisation du marché de l'électricité et modifiant la loi du 12 avril 1965 relative au transport de produits gazeux et autres par canalisations",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3435",
@@ -593,7 +626,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3423": {
+    {
         "title": "Projet de loi portant des dispositions diverses en matière de modernisation de l'état civil",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3423",
@@ -626,7 +659,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "0190": {
+    {
         "title": "Proposition de loi visant à favoriser la mobilité des travailleurs en assouplissant les conditions d'ancienneté applicables en matière de crédit temps et de congé parental",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "0190",
@@ -659,7 +692,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3404": {
+    {
         "title": "Projet de loi portant des dispositions fiscales diverses",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3404",
@@ -692,7 +725,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3449": {
+    {
         "title": "Projet de loi modifiant la loi électorale communale, coordonnée le 4 août 1932, en vue de régulariser la situation des citoyens britanniques qui étaient inscrits comme électeurs pour les élections communales avant l'entrée en vigueur du Brexit",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3449",
@@ -725,7 +758,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3436": {
+    {
         "title": "Projet de loi visant à rendre la justice plus humaine, plus rapide et plus ferme IV",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3436",
@@ -758,7 +791,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3429": {
+    {
         "title": "Projet de loi visant à modifier le Code pénal en vue d'incriminer les pratiques de conversion",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3429",
@@ -791,7 +824,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3291": {
+    {
         "title": "Projet de loi visant à modifier la loi du 3 décembre 2017 portant création de l'Autorité de protection des données en ce qui concerne la possibilité pour des tiers intéressés d'intervenir dans la procédure devant la chambre contentieuse et d'introduire un recours contre une décision de la chambre contentieuse",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3291",
@@ -824,7 +857,7 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     },
-    "3264": {
+    {
         "title": "Projet de loi concernant des mesures de police administrative en matière de restrictions de voyage et de formulaire de localisation du passager et modifiant diverses dispositions relatives au comité de sécurité de l'information",
         "document_page_url": "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb/recent&language=fr&cfm=/site/wwwcfm/flwb/rapweekweekly.cfm?week=4",
         "document_number": "3264",
@@ -857,4 +890,4 @@
         "1_seancepleinierechambre": "",
         "2_seancepleinierechambre": ""
     }
-}
+]

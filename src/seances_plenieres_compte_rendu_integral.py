@@ -42,7 +42,8 @@ def date_convert(date:str)-> str:
     date_list = date.split()
     return date_list[0]+'/' + date_dict[date_list[1]] + "/" + date_list[2]
 
-main_url = "https://www.lachambre.be/kvvcr/showpage.cfm?section=/cricra&language=fr&cfm=dcricra.cfm?type=plen&cricra=cri&count=all"
+main_url = "https://www.lachambre.be/kvvcr/showpage.cfm?section=/cricra&language=fr&cfm=dcricra.cfm?type=comm&cricra=cri&count=all"
+
 session = requests.Session()
 response = session.get(main_url)
 html_content = response.text
