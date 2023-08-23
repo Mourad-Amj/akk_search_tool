@@ -100,6 +100,7 @@ def formatted_data_fr(data):
             else:
                 cleaned_item = cleaned_item.capitalize()
             formatted_list.append(cleaned_item)
+        fr_data.pop("fr_keywords", None)
         fr_data["fr_keywords"] = list(set(formatted_list))
 
         policy_level = fr_data["commissionchambre"].title()
@@ -112,7 +113,8 @@ def formatted_data_fr(data):
         
         fr_data["fr_title_embedding"] = embed(fr_data["fr_main_title"], model=model).tolist()
         fr_data["fr_text_embedding"] = embed(fr_data["fr_text"], model=model).tolist()
-
+        fr_data.pop("descripteurEurovocprincipal", None)
+        fr_data.pop("descripteursEurovoc", None)
         col.insert_one(fr_data)
     #return fr_data
 
