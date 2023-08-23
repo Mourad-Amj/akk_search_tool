@@ -24,9 +24,9 @@ try:
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
         agenda = pd.DataFrame(st.session_state.agenda_df)
-        agenda.to_excel(writer, sheet_name='Sheet1')        
+        agenda.to_excel(writer, sheet_name='Output', startrow = 2)        
         output = pd.DataFrame(st.session_state.output_df)
-        output.to_excel(writer, sheet_name='Sheet1')
+        output.to_excel(writer, sheet_name='Output', startrow = len(agenda) + 4)
         writer.close()
 
         st.download_button(

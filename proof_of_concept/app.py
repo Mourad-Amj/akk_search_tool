@@ -11,7 +11,7 @@ import xlsxwriter
 from sentence_transformers import SentenceTransformer, util
 import datetime
 
-st.set_page_config(page_title = "Search engine")
+st.set_page_config(page_title = "lachambre search engine")
 # initialization
 st.title("PoC: lachambre.be custom search engine")
 
