@@ -66,18 +66,19 @@ def formatted_data_fr(data):
             "fr_main_title": data["Question"],
             "link_to_document": data.get("Publication question", "") or data.get("Publication réponse", ""),
             "fr_keywords": data.get("Mots-clés libres", ""),
-            "fr_source": "Bulletins des questions et réponses écrites",
+            "fr_source": "Bulletins des Questions et Réponses Ecrites",
             "commissionchambre": data["Département"],
             "fr_text": data.get("Réponse", ""),
             "fr_stakeholders": data.get("Auteur", ""),
             "fr_status": data["Statut question"],
-            "fr_title_embedding": [],
-            "fr_text_embedding": [],
             "descripteurEurovocprincipal": data.get("Desc. Eurovoc principal", ""),
             "descripteursEurovoc": data.get("Descripteurs Eurovoc", ""),
         }   
 
-    existing_document = col.find_one({"document_number": fr_data["document_number"],"fr_source":"Bulletins des questions et réponses écrites"})
+    update = {"document_number": (re.search(r': (\d+)', fr_data["document_number"])[1])}
+    fr_data.update(update)
+
+    existing_document = col.find_one({"document_number": fr_data["document_number"],"fr_source":"Bulletins des Questions et Réponses Ecrites"})
 
     if existing_document:
         print("Document with the same doc_number already exists.") 
@@ -100,12 +101,11 @@ def formatted_data_fr(data):
             else:
                 cleaned_item = cleaned_item.capitalize()
             formatted_list.append(cleaned_item)
-        fr_data.pop("fr_keywords", None)
-        fr_data["fr_keywords"] = list(set(formatted_list))
+        new_keywords = {"fr_keywords": list(set(formatted_list))}
+        fr_data.update(new_keywords)
 
         policy_level = fr_data["commissionchambre"].title()
         fr_data["policy_level"] = f'Federal Parliament ({policy_level})'
-
         
         def embed(text, model):
             text_embedding = model.encode(text)
