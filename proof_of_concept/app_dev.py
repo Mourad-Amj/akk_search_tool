@@ -9,6 +9,8 @@ import pandas as pd
 import io
 import xlsxwriter
 import pymongo
+#msg pack
+import msgpack
 
 from sentence_transformers import SentenceTransformer, util
 import datetime
@@ -27,13 +29,25 @@ def get_data():
     db = client.akkanto_db
     agenda_db = db.agenda_test.find()
     doc_db = db.doc_test.find()
-    return list(agenda_db), list(doc_db)
+    # embedder = SentenceTransformer('all-MiniLM-L6-v2')
+    # for item1 in agenda_db:
+    #     item1["embedding"] = embedder.encode(item1["issue"], convert_to_tensor=False)
+    # for item2 in doc_db:
+    #     #using text not title
+    #     item2["embedding"] = embedder.encode(item2["text"], convert_to_tensor=False)
+    
+    # #return list(agenda_db), list(doc_db)
+    return agenda_db, doc_db
 
 
 agenda, database = get_data()
+
 # Print results.
-# for item in items:
-#     st.write(item)
+for item in agenda:
+    st.write(item['issue'])
+
+for element in agenda:
+    print(element)
 
 
 # -----------------------------------END OF CONNECTION----------------------------
@@ -252,10 +266,10 @@ st.title("PoC: lachambre.be custom search engine")
 #             'source':  "Chambre des représentants de Belgique" ,
 #             'date': "13/06/2023",
 #             'author': ["Gouvernement/Regering"]}]
-#     embedder = SentenceTransformer('all-MiniLM-L6-v2')
-#     for item in database:
-#         item["embedding"] = embedder.encode(item["text"], convert_to_tensor=False)
-#     return database
+    # embedder = SentenceTransformer('all-MiniLM-L6-v2')
+    # for item in database:
+    #     item["embedding"] = embedder.encode(item["text"], convert_to_tensor=False)
+    # return database
 
 
 def apply_topic_filter(database, score_threshold):
@@ -267,7 +281,7 @@ def apply_topic_filter(database, score_threshold):
             search_result.append(item)
     return search_result
 
-@st.cache_data
+#@st.cache_data
 def apply_date_filter(database, start_date, end_date):
     search_result = []
     for item in database: 
@@ -350,14 +364,17 @@ doc_search = apply_topic_filter(apply_date_filter(database, start_date, end_date
 
 try:
     agenda_temp = pd.DataFrame(agenda_search)
-    agenda_out = agenda_temp[['r', 'level', 'type', 'issue', 'date', 'authors', 'url', 'status']]
-except:
+    agenda_out = agenda_temp#[['r', 'level', 'type', 'issue', 'date', 'authors', 'url', 'status']]
+except Exception as e :
+    st.write(e)
+    st.write("367")
     agenda_out = pd.DataFrame(agenda_search)
 
 try:
     df_temp = pd.DataFrame(doc_search)
     df_out = df_temp[['id', 'title', 'author', 'date', 'source', 'text']]
-except:
+except Exception as e:
+    st.write(e)
     df_out = pd.DataFrame(doc_search)
 
 st.write("Agenda: ")
