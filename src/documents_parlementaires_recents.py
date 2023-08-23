@@ -19,6 +19,7 @@ def get_links(url, session):
 
         href_value = link.attrs.get("href")
         final_link = f"{LINK_PREFIX}{href_value}"
+        print(final_link)
 
         yield final_link
 
@@ -78,7 +79,7 @@ def get_all_data(link, session):
     keywords_finding = soup2.find_all("td")
     for i, all_keywords in enumerate(keywords_finding):
         if all_keywords.text.strip() == "Descripteurs Eurovoc":
-            keywords = keywords_finding[i + 1].text.split(", ")
+            keywords = keywords_finding[i + 1].text.replace(" | ", ", ").split(", ")
             break
 
     data = {
