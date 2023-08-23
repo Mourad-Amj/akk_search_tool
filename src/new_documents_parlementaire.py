@@ -15,6 +15,7 @@ def remove_extra_spaces(s):
 
 def get_all_data(link, session):
     data = {}
+    data_list = []
     regex = r"\d{1,2}/\d{1,2}/\d{1,4}"
 
     response = session.get(link)
@@ -54,40 +55,42 @@ def get_all_data(link, session):
         dossier_type_of_document = dossier_content_div_text[1].split(" ")[3:]
         dossier_type_of_document_formatted = (" ").join(dossier_type_of_document)
 
-        data[dossier_id] = {
-            "title": text,
-            "document_page_url": ROOT_URL,
-            "document_number": dossier_id,
-            "fr_text": "",
-            "date": dossier_date_formatted,
-            "link_to_document": pdf_link,
-            "pdf id": pdf_link_element,
-            "keywords": " ",
-            "source": "Documents Parlementaires Récents",
-            "commissionchambre": "",
-            "nl_text": "",
-            "stakeholders": "",
-            "status": "",
-            "title_embedding": [],  # preprocess -> not for engineers
-            "fr_text_embedding": [],  # preprocess -> not for engineers
-            "nl_text_embedding": [],  # preprocess -> not for engineers
-            "topic": "",  # preprocess -> not for engineers
-            "policy_level": "",  # preprocess -> not for engineers
-            "type": "",  # preprocess -> not for engineers
-            "issue": "",  # preprocess -> not for engineers
-            "reference": "",  # preprocess -> not for engineers
-            "maindocuments": "",
-            "typededocument": dossier_type_of_document_formatted,
-            "descripteurEurovocprincipal": "",
-            "descripteursEurovoc": "",
-            "seancepleinierechambre": "",
-            "compťtence": "",
-            "1_commissionchambre": "",
-            "2_commissionchambre": "",
-            "1_seancepleinierechambre": "",
-            "2_seancepleinierechambre": "",
-        }
-    return data
+        data_list.append(
+            {
+                "title": text,
+                "document_page_url": ROOT_URL,
+                "document_number": dossier_id,
+                "fr_text": "",
+                "date": dossier_date_formatted,
+                "link_to_document": pdf_link,
+                "pdf id": pdf_link_element,
+                "keywords": " ",
+                "source": "Documents Parlementaires Récents",
+                "commissionchambre": "",
+                "nl_text": "",
+                "stakeholders": "",
+                "status": "",
+                "title_embedding": [],  # preprocess -> not for engineers
+                "fr_text_embedding": [],  # preprocess -> not for engineers
+                "nl_text_embedding": [],  # preprocess -> not for engineers
+                "topic": "",  # preprocess -> not for engineers
+                "policy_level": "",  # preprocess -> not for engineers
+                "type": "",  # preprocess -> not for engineers
+                "issue": "",  # preprocess -> not for engineers
+                "reference": "",  # preprocess -> not for engineers
+                "maindocuments": "",
+                "typededocument": dossier_type_of_document_formatted,
+                "descripteurEurovocprincipal": "",
+                "descripteursEurovoc": "",
+                "seancepleinierechambre": "",
+                "compťtence": "",
+                "1_commissionchambre": "",
+                "2_commissionchambre": "",
+                "1_seancepleinierechambre": "",
+                "2_seancepleinierechambre": "",
+            }
+        )
+    return data_list
 
 
 def save_file(data):
