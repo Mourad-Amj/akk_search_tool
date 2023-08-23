@@ -31,22 +31,17 @@ def get_all_data(link, session):
 
     data["document_page_url"] = link
 
-    finding_document_number = link.split("=")[7]
-    data["document_number"] = finding_document_number
+    data["document_number"] = link.split("=")[7]
 
-    finding_first_title = soup2.find("center")
-    first_title = finding_first_title.text.strip()
-    data["title"] = first_title
+    data["title"] = soup2.find("center").text.strip()
 
-    finding_main_title = soup2.find_all("center")
-    main_title = finding_main_title[1].text.strip()
-    data["main_title"] = main_title
+    data["main_title"] = soup2.find_all("center")[1].text.strip()
 
     finding_date = soup2.find_all("td")
-    regex = r"\d{1,2}/\d{1,2}/\d{1,4}"
+    regex_date = r"\d{1,2}/\d{1,2}/\d{1,4}"
     for i, all_dates in enumerate(finding_date):
         dates = all_dates.text.strip()
-        if match := re.search(regex, dates, re.IGNORECASE):
+        if match := re.search(regex_date, dates, re.IGNORECASE):
             data["date"] = match[0]
 
     finding_url_pdf = soup2.select("a[href*=lachambre]")
@@ -81,7 +76,7 @@ def get_all_data(link, session):
             data["commissionchambre"] = all_commissions
             break
 
-    data["source"] = "Documents Parlemantaire Récents"
+    data["source"] = "S
 
     data["keywords"] = ""
     keywords_finding = soup2.find_all("td")
