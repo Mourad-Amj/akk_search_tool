@@ -10,8 +10,9 @@ import io
 import xlsxwriter
 import pymongo
 #msg pack
-import msgpack
-
+from bson import json_util
+import json
+import os
 from sentence_transformers import SentenceTransformer, util
 import datetime
 st.set_page_config(page_title = "Search engine")
@@ -26,28 +27,67 @@ client = init_connection()
 
 
 def get_data():
-    db = client.akkanto_db
-    agenda_db = db.agenda_test.find()
-    doc_db = db.doc_test.find()
-    # embedder = SentenceTransformer('all-MiniLM-L6-v2')
-    # for item1 in agenda_db:
-    #     item1["embedding"] = embedder.encode(item1["issue"], convert_to_tensor=False)
-    # for item2 in doc_db:
-    #     #using text not title
-    #     item2["embedding"] = embedder.encode(item2["text"], convert_to_tensor=False)
     
-    # #return list(agenda_db), list(doc_db)
+    #---------------------------------------------------------------------LOADING FROM FILE
+    cached_agenda_db_file_path = "agenda_db.json"
+    cached_doc_db_file_path = "doc_db.json"
+    
+    
+    
+    if os.path.isfile(cached_agenda_db_file_path) and os.path.isfile(cached_doc_db_file_path):
+        
+        with open(cached_agenda_db_file_path, "rb") as data_file:
+             agenda_db_file = json.load(data_file)
+
+        agenda_db = agenda_db_file
+        
+        with open(cached_doc_db_file_path, "rb") as data_file:
+             doc_db_file = json.load(data_file)
+
+        doc_db = doc_db_file
+    else:
+        db = client.akkanto_db
+        agenda_db_cursor= db.agenda_test.find()
+        # agenda_db = list(db.agenda_test.find())
+        # doc_db = list(db.doc_test.find())
+        doc_db_cursor = db.doc_test.find()
+        doc_db = list(doc_db_cursor)
+        agenda_db = list(agenda_db_cursor)
+        serialized_agenda = [json.dumps(result, default=json_util.default, separators=(',', ':')) for result in agenda_db]
+        serialized_doc = [json.dumps(result, default=json_util.default, separators=(',', ':')) for result in doc_db]
+        
+        
+        with io.open('agenda_db.json', 'w', encoding='utf8') as outfile:
+            data_agenda = json.dumps(serialized_agenda,indent=4)
+            outfile.write(data_agenda)
+            
+        
+        with io.open('docs_db.json', 'w', encoding='utf8') as outfile:
+            data_docs = json.dumps(serialized_doc,indent=4)
+            outfile.write(data_docs)
+            
+            
+            #--------------------------HAD TO COMMENT BC OF EMBED
+        # embedder = SentenceTransformer('LaBSE')
+        # for item1 in agenda_db:
+        #     item1["embedding"] = embedder.encode(item1["issue"], convert_to_tensor=False)
+        # for item2 in doc_db:
+        #     #using text not title
+        #     item2["embedding"] = embedder.encode(item2["text"], convert_to_tensor=False)    
+        
+     
     return agenda_db, doc_db
+#---------------------------------------------------------------------------------------------
 
 
 agenda, database = get_data()
 
-# Print results.
-for item in agenda:
-    st.write(item['issue'])
+# Print results.---------------------------------------TEST OF CONNECTION-------------------
+# for item in agenda:
+#     st.write(item['issue'])
 
-for element in agenda:
-    print(element)
+# for element in agenda:
+#     print(element)
 
 
 # -----------------------------------END OF CONNECTION----------------------------
@@ -275,9 +315,12 @@ st.title("PoC: lachambre.be custom search engine")
 def apply_topic_filter(database, score_threshold):
     search_result = []
     for item in database: 
-        cos_score = util.cos_sim(item["embedding"], query_embedding)[0]
-        condition = cos_score.abs()
-        if condition > score_threshold :
+        
+        #--------------------HAD TO COMMENT BC OF EMBED
+        
+        # cos_score = util.cos_sim(item["embedding"], query_embedding)[0]
+        # condition = cos_score.abs()
+        # if condition > score_threshold :
             search_result.append(item)
     return search_result
 
