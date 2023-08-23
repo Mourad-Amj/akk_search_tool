@@ -2,13 +2,24 @@
 Scrape the table data including links to pdfs of documents for
 all documents of the 'Apercu Complet' page of the lachambre.be site
 """
-
+import time
 import requests
+import certifi
+import unicodedata
+import ssl
 import json
 from bs4 import BeautifulSoup as bs
 import pdfplumber
 import io
 import re
+from pymongo import MongoClient
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+ssl._create_default_https_context = ssl._create_unverified_context
+start_time = time.perf_counter()
 
 from sentence_transformers import SentenceTransformer
 
@@ -48,6 +59,13 @@ def get_text_documet_parlementaire(url):
 
     return fr_text, nl_text    
 
+# print("Connecting to database ...")
+
+# connection = 'mongodb+srv://maximberge:aAIbS7zRpsbsy6Gb@cluster0.p97p1.mongodb.net/?retryWrites=true&w=majority'
+
+# client = MongoClient(connection, tlsCAFile=certifi.where())
+# db = client["akkanto_db"]
+# collection = db["doc_complets_test"]
 
 
 def get_soup(url: str):
@@ -146,11 +164,34 @@ for group_document_url in group_document_urls[:1]:
         final_dict["issue"] = ""
         final_dict["reference"] = ""
 
-        # print(final_dict)
-         
-        document_list.append(final_dict)
-        for item in document_list:
-            print(item)
+       
+        document_list.append(final_dict)      
+        # query = {
+        # "$and": [
+        #     {"source": {"$eq": "Documents parlementaires aperçu complet"}},
+        #     {"document_number": {"$eq": final_dict['document_number']}}
+        # ]
+        # }
+      
 
-with open("data/apercu_complet_partial.json", "w") as fout:
-    json.dump(document_list, fout,ensure_ascii=False, cls="NpEncoder")
+        # if collection.find_one(query):
+        #     print("Checking if document already exist in database ...")  
+        #     print(f" The document with the number {final_dict['document_number']} already exists.")
+        # else:
+        #     print(f"Adding document with number {final_dict['document_number']} to the database ...")  
+        #     collection.insert_one(final_dict)  
+         
+      
+        # for item in document_list:
+        #     print(item)
+# print("Closing connection to database ...")
+# client.close()
+
+end_time = time.perf_counter()
+print(round(end_time - start_time, 2), "seconds")
+
+for document in document_dict[:3]:
+    print(document)
+
+# with open("data/apercu_complet_partial.json", "w") as fout:
+#     json.dump(document_list, fout,ensure_ascii=False)
