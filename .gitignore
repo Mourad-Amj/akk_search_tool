@@ -323,4 +323,12 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+<<<<<<< HEAD
 >>>>>>> 4c03775ad385879a1d2c734ed554d56d32142431
+=======
+
+
+#Test folders
+folder_to_ignore/
+.DS_Store
+>>>>>>> 02269bc61fbe18830ad3ddca9ceaba7aa9f6d184

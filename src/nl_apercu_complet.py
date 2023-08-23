@@ -67,45 +67,46 @@ def get_text_documet_parlementaire(url):
     return fr_text, nl_text    
 
 def get_type(text):
-    if text == "Proposition De Loi":
+    if text == "Wetsontwerp":
         return "Law Proposal"
-    elif text == "Projet De Loi":
+    elif text == "Wetsvoorstel":
         return "Draft Legislation"
-    elif text == "Rapport":
+    elif text == "Verslag":
         return "Report"
-    elif text == "Proposition De Resolution":
+    elif text == "Voorstel Van Resolutie":
         return "Resolution Proposal"
-    elif text == "Proposition Reglement":
+    elif text == "Voorstel Reglement":
         return "Regulation Proposal"
-    elif text == "Proposition Commiss. D'enquete":
+    elif text == "Voorstel Onderzoekscommissie":
         return "Proposal for Commission of Enquiry"
-    elif text == "Proposition De Révision":
+    elif text == "Voorstel Tot Herziening":
         return "Revision Proposal"
-    elif text == "Presentation De Candidats":
+    elif text == "Voordracht Van Kandidaten":
         return "Presentation of Candidates"
-    elif text == "Budget" or  text == "Elections":
-        return text
-    elif text == "Expose General":
+    elif text == "Begroting":
+        return "Budget"
+    elif text == "Algemene Toelichting":
         return "General Overview"
-    elif text == "Tableaux Ou Listes":
+    elif text == "Tabellen Of Lijsten":
         return "Charts/Listes"
-    elif text == "Proposition De Declaration":
+    elif text == "Voorstel Van Verklaring":
         return "Declaration Proposal"
-    elif text == "Farde":
+    elif text == "Kaft":
         return "Binder"
-    elif text == "Decision Comm. De Concertation":
+    elif text == "Beslissing Overlegcommissie":
         return "Concertation Commission Decision"
-    elif text == "Accord De Gouvernement":
+    elif text == "Regeerakkoord":
         return "Government Agreement"
-    elif text == "Liste Revision Constitution":
+    elif text == "Lijst Grondwetsherziening":
         return "Constitutional Revision List"
-    elif text == "Feuilleton De Petitions":
+    elif text == "Lijst Van Verzoekschriften":
         return "Petitions List"
-    elif text == "Texte Adopte":
+    elif text == "Aangenomen Tekst":
         return "Text Adopted"
+    elif text ==  "Verkiezingen":
+        return "Elections"
     else:
         return "Other"
-    
 
 def get_soup(url: str):
     response = requests.get(url)
@@ -126,8 +127,9 @@ for group_document_url in group_document_urls:
     table = url_soup.find("table")
     document_links = table.find_all("a")
     documents = [base_url + link["href"] for link in document_links]
+    print("page:",group_document_url)
     for index, document in enumerate(documents, start=1):
-        print(f"Adding document data {index} of {len(documents)} ...")
+        # print(f"Adding document data {index} of {len(documents)} ...")
         document_soup = get_soup(document)
         document_dict = {}
         section = document_soup.find("div", attrs={"id": "Story"})
@@ -151,83 +153,66 @@ for group_document_url in group_document_urls:
                     document_dict[header] = "NoURLfound"
             else:
                 document_dict[header] = content
-        document_list.append(document_dict)
-        # existing_document = col.find_one({"document_number": document_dict["document_number"],"fr_source":"Documents Parlementaires Aperçu Complet"})
 
-        # if existing_document:
-        #     print("Document with the same doc_number already exists.")
-            
+        existing_record = col.find_one({"fr_source": "Documents Parlementaires Aperçu Complet", "document_number": document_dict["document_number"],  "nl_source": {"$in": ["", None]}})
+
+        if existing_record:
+
+            final_dict = {}
+            final_dict["nl_title"] = document_dict["nl_title"]
+            final_dict["nl_main_title"] = document_dict["nl_main_title"]
+
+            keywords = []
+            if "Eurovoc-hoofddescriptor" in document_dict.keys():
+                keywords.append(document_dict["Eurovoc-hoofddescriptor"].title()) 
+            if "Eurovoc descriptoren" in document_dict.keys():
+                descripteurs = document_dict["Eurovoc descriptoren"].title().split('|')
+                keywords.extend(descripteurs)
+            if "Vrije trefwoorden" in document_dict.keys():
+                descripteurs = document_dict["Vrije trefwoorden"].title().split('|')
+                keywords.extend(descripteurs)
+            formatted_list = []
+            for item in keywords:
+                cleaned_item = item.strip()
+                if " " in cleaned_item:
+                    cleaned_item = cleaned_item.title()
+                else:
+                    cleaned_item = cleaned_item.capitalize()
+                formatted_list.append(cleaned_item)
+            final_dict["nl_keywords"] = list(set(formatted_list))
+
+            final_dict["nl_source"] = "Parlementaire Stukken Volledig Overzicht"
+
+            if "COMMISSIE KAMER" in document_dict.keys():
+                final_dict["commissiekamer"] = document_dict["COMMISSIE KAMER"]
+            if "1. COMMISSIE KAMER" in document_dict.keys():
+                final_dict["commissiekamer"] = document_dict["1. COMMISSIE KAMER"]
+
+            if "commissiekamer" in final_dict.keys():
+                final_dict["commissiekamer"] = final_dict["commissiekamer"].title()
+        
+            if "Auteur(s)" in document_dict.keys():
+                final_dict["nl_stakeholders"] = document_dict["Auteur(s)"]
+
+            final_dict["nl_title_embedding"] = embed(final_dict["nl_main_title"], model=model).tolist()
+
+            if "commissiekamer" in final_dict.keys():
+                policy_level = final_dict["commissiekamer"].title()
+                final_dict["policy_level"] = f'Federal Parliament ({policy_level})'
+
+            # nl_type = re.sub(r'\d+', '', document_dict["Document type"])
+            # nl_type = ' '.join(word.capitalize() for word in nl_type.split())
+            # final_dict["nl_type"] = get_type(nl_type)
+
+            # print(f"Adding data {index} into database..")
+
+            update_result = col.update_one(
+                {"_id": existing_record["_id"]},
+                {"$set": final_dict}
+            )
+
         # else:
-        #     final_dict = {}
-        #     final_dict["fr_title"] = document_dict["fr_title"]
-        #     final_dict["document_number"] = document_dict["document_number"]
-
-        #     if "Date de dépôt" in document_dict.keys():
-        #         final_dict["date"] = document_dict["Date de dépôt"]
-
-        #     final_dict["document_page_url"] = document_dict["document_page_url"]
-        #     final_dict["fr_main_title"] = document_dict["fr_main_title"]
-
-        #     if "Document Chambre" in document_dict.keys(): 
-        #         final_dict["link_to_document"] = document_dict["Document Chambre"]
-
-        #     keywords = []
-        #     if "Descripteur Eurovoc principal" in document_dict.keys():
-        #         keywords.append(document_dict["Descripteur Eurovoc principal"].title()) 
-        #     if "Descripteurs Eurovoc" in document_dict.keys():
-        #         descripteurs = document_dict["Descripteurs Eurovoc"].title().split('|')
-        #         keywords.extend(descripteurs)
-        #     if "Mots-clés libres" in document_dict.keys():
-        #         descripteurs = document_dict["Mots-clés libres"].title().split('|')
-        #         keywords.extend(descripteurs)
-        #     formatted_list = []
-        #     for item in keywords:
-        #         cleaned_item = item.strip()
-        #         if " " in cleaned_item:
-        #             cleaned_item = cleaned_item.title()
-        #         else:
-        #             cleaned_item = cleaned_item.capitalize()
-        #         formatted_list.append(cleaned_item)
-        #     final_dict["fr_keywords"] = list(set(formatted_list))
-
-        #     final_dict["fr_source"] = "Documents Parlementaires Aperçu Complet"
-
-        #     if "COMMISSION CHAMBRE" in document_dict.keys():
-        #         final_dict["commissionchambre"] = document_dict["COMMISSION CHAMBRE"]
-        #     if "1. COMMISSION CHAMBRE" in document_dict.keys():
-        #         final_dict["commissionchambre"] = document_dict["1. COMMISSION CHAMBRE"]
-
-        #     if "commissionchambre" in final_dict.keys():
-        #         final_dict["commissionchambre"] = final_dict["commissionchambre"].title()
-            
-        #     if final_dict["link_to_document"] == "NoURLfound":
-        #         fr_text, nl_text = "",""
-        #         print("noURL")
-        #     else:
-        #         fr_text, nl_text = get_text_documet_parlementaire(final_dict["link_to_document"])
-        #     if "Auteur(s)" in document_dict.keys():
-        #         final_dict["fr_stakeholders"] = document_dict["Auteur(s)"]
-
-        #     final_dict["fr_title_embedding"] = embed(final_dict["fr_main_title"], model=model).tolist()
-
-        #     if final_dict["link_to_document"] == "NoURLfound":
-        #         final_dict["fr_text_embedding"] = np.array([0]*768).astype(np.float32).tolist()
-        #         final_dict["nl_text_embedding"] = np.array([0]*768).astype(np.float32).tolist()
-        #     else:
-        #         final_dict["fr_text_embedding"] = embed(fr_text, model=model).tolist()
-        #         final_dict["nl_text_embedding"] = embed(nl_text, model=model).tolist()
-
-        #     if "commissionchambre" in final_dict.keys():
-        #         policy_level = final_dict["commissionchambre"].title()
-        #         final_dict["policy_level"] = f'Federal Parliament ({policy_level})'
-
-        #     fr_type = re.sub(r'\d+', '', document_dict["Type de document"])
-        #     fr_type = ' '.join(word.capitalize() for word in fr_type.split())
-        #     final_dict["fr_type"] = get_type(fr_type)
-
-        #     print(f"Adding data {index} into database..")
-
-        #     col.insert_one(final_dict)        
+        #     # print(f"Record not found --> document_number: {document_dict['document_number']}")     
             
 
 end_time = time.perf_counter()
