@@ -69,6 +69,9 @@ class Printer():
                                        'value':    text_match,
                                        'format':   format})
 
+    def autofit(self):
+        self.worksheet.autofit()
+
     def test_create_excel(self):
         df_dict_1 = {
         'onderwerp': ['School', 'Kwaliteit'],
@@ -90,22 +93,28 @@ class Printer():
         self.append_df(self.test_df1, self.header_format)    
         self.append_df(self.test_df2, self.header_format)
 
+# Piece of code to convert urls to hyperlinks
+"""
+df["url"] = df["url"].apply(lambda url : '=HYPERLINK("{}", "{}")'.format("url", "LINK") )
+"""
+
 try:
     try:
         st.write("Agenda: ")
         st.session_state.agenda_df=st.session_state.agenda_df[['r', 'level', 'type', 'issue', 'date', 'authors', 'url', 'status']]
-        st.session_state.agenda_df = st.data_editor(st.session_state.agenda_df, num_rows = "dynamic", use_container_width=True)
+        st.session_state.agenda_df = st.data_editor(st.session_state.agenda_df, num_rows = "dynamic", use_container_width=True, hide_index = True)
     except:
         st.subheader("No Agenda to export")
         st.text("Agenda will appear once a search result is appended")
     try:
         st.write("Looking back: ")    
         st.session_state.output_df=st.session_state.output_df[['id', 'title', 'author', 'date', 'source', 'text']]
-        st.session_state.output_df=st.data_editor(st.session_state.output_df, num_rows = "dynamic", use_container_width=True)
+        st.session_state.output_df=st.data_editor(st.session_state.output_df, num_rows = "dynamic", use_container_width=True, hide_index = True)
     except:
         st.subheader("No data to export")
         st.text("Data will appear once a search result is appended")
     
+
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
         printer = Printer(writer)
@@ -114,6 +123,7 @@ try:
         printer.append_df(st.session_state.agenda_df)
         printer.insert_title('2.  Looking back')
         printer.append_df(st.session_state.output_df)
+        printer.autofit()
         writer.close()
 
         st.download_button(
