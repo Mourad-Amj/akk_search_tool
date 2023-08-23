@@ -112,7 +112,7 @@ def get_soup(url: str):
     return bs(response.content, "html.parser")
 
 
-url = "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb&language=fr&cfm=ListDocument.cfm"
+url = "https://www.lachambre.be/kvvcr/showpage.cfm?section=/flwb&language=nl&cfm=ListDocument.cfm"
 base_url = "https://www.lachambre.be/kvvcr/"
 
 soup = get_soup(url)
@@ -205,8 +205,8 @@ for group_document_url in group_document_urls:
                 print("noURL")
             else:
                 fr_text, nl_text = get_text_documet_parlementaire(final_dict["link_to_document"])
-
-            final_dict["fr_stakeholders"] = document_dict["Auteur(s)"]
+            if "Auteur(s)" in document_dict.keys():
+                final_dict["fr_stakeholders"] = document_dict["Auteur(s)"]
 
             final_dict["fr_title_embedding"] = embed(final_dict["fr_main_title"], model=model).tolist()
 
