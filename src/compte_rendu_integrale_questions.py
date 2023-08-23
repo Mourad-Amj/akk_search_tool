@@ -4,8 +4,18 @@ import re
 import json
 import pandas as pd
 import numpy as np
+import pymongo
+import certifi
+import os
+from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer, util
 # import torch
+
+load_dotenv()
+connection = os.getenv("MONGODB_URI")
+client = pymongo.MongoClient(connection, tlsCAFile=certifi.where())
+db = client["akkanto_db"]
+col = db["commision_compte_rendu_questions_test"]
 
 #pre-processing functions
 
@@ -101,7 +111,7 @@ soup = bs(main_response.content, "html.parser")
 
 questions = []
 rows = soup.find_all("tr", valign="top")
-for row in rows[:2]:
+for row in rows[:2]: # Don't forgert to remove slicing
     new_elements = row.findChildren()
     pdf_link = "https://www.lachambre.be" + new_elements[0].find("a")["href"]
     name = new_elements[0].text.strip()
@@ -185,34 +195,37 @@ for row in rows[:2]:
                         except:
                             print("problem with span lang attribute.")
                             print(h2_tag.span)
-                        questions.append(
-                            {
-                                "title": main_title,
-                                "document_number": name,
-                                "date": date,
-                                "document_page_url": main_url,
-                                "fr_main_title": get_issue(question_FR), #should be later used to display the issue
-                                "nl_main_title": get_issue(question_NL),
-                                "link_to_document": pdf_link,
-                                "keywords": "",
-                                "source": main_title,
-                                "commissionchambre": commission,
-                                "fr_text": "",
-                                "nl_text": "",
-                                "stakeholders": get_stakeholders([politician_asking,
-                                                                  politician_adressed]),
-                                "status": "",
-                                "title_embedding": compute_embedding(main_title),
-                                "fr_text_embedding": compute_embedding(""),
-                                "nl_text_embedding": compute_embedding(""),
-                                "fr_main_title_embedding": compute_embedding(question_FR),
+                        existing_document = col.find_one({"document_number": name,"fr_source": main_title})    
+                        if existing_document:
+                            print("Document with the same doc_number already exists.")
+                            
+                        else:
+                            document_dict = {}
+                            document_dict["title"] = main_title
+                            document_dict["document_number"] = name
+                            document_dict["date"] = date
+                            document_dict["document_page_url"] = main_url
+                            document_dict["fr_main_title"] = get_issue(question_FR) #should be later used to display the issue
+                            document_dict["nl_main_title"] = get_issue(question_NL)
+                            document_dict["link_to_document"] = pdf_link
+                            document_dict["keywords"] = ""
+                            document_dict["source"] = main_title
+                            document_dict["commissionchambre"] = commission
+                            document_dict["fr_text"] = ""
+                            document_dict["nl_text"] = ""
+                            document_dict["stakeholders"] = get_stakeholders([politician_asking
+                                                                  politician_adressed])
+                            document_dict["status"] = ""
+                            document_dict["title_embedding"] = compute_embedding(main_title)
+                            document_dict["fr_text_embedding"] = compute_embedding("")
+                            document_dict["nl_text_embedding"] = compute_embedding("")
+                                document_dict["fr_main_title_embedding": compute_embedding(question_FR),
                                 "nl_main_title_embedding": compute_embedding(question_NL),
                                 "topic": "",
                                 "policy_level": get_policylevel(main_title,commission),
                                 "type": get_type(),
                                 "reference": "",
-                            }
-                        )
+                       
                         break
 
 with open("data/commision_compte_rendu_questions_test.json", "w") as fout:
