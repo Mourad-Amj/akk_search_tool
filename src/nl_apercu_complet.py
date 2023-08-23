@@ -131,10 +131,10 @@ for group_document_url in group_document_urls:
         document_soup = get_soup(document)
         document_dict = {}
         section = document_soup.find("div", attrs={"id": "Story"})
-        document_dict["fr_title"] = section.find("h3").text.strip()
-        document_dict["document_number"] = document_dict["fr_title"][-4:]
+        document_dict["nl_title"] = section.find("h3").text.strip()
+        document_dict["document_number"] = document_dict["nl_title"][-4:]
         document_dict["document_page_url"] = document
-        document_dict["fr_main_title"] = section.find("h4").text.strip()
+        document_dict["nl_main_title"] = section.find("h4").text.strip()
         document_table = section.find("table")
         for rows in document_table.select("tr"):
             cells = rows.find_all("td", recursive=False)
@@ -144,90 +144,90 @@ for group_document_url in group_document_urls:
                     continue
                 header = " ".join(cells[0].text.split())
                 content = " ".join(cells[1].text.split())
-            if header == "Document Chambre":
+            if header == "Document Kamer":
                 try:
                     document_dict[header] = rows.find("a").get("href")
                 except:
                     document_dict[header] = "NoURLfound"
             else:
                 document_dict[header] = content
+        document_list.append(document_dict)
+        # existing_document = col.find_one({"document_number": document_dict["document_number"],"fr_source":"Documents Parlementaires Aperçu Complet"})
 
-        existing_document = col.find_one({"document_number": document_dict["document_number"],"fr_source":"Documents Parlementaires Aperçu Complet"})
-
-        if existing_document:
-            print("Document with the same doc_number already exists.")
+        # if existing_document:
+        #     print("Document with the same doc_number already exists.")
             
-        else:
-            final_dict = {}
-            final_dict["fr_title"] = document_dict["fr_title"]
-            final_dict["document_number"] = document_dict["document_number"]
+        # else:
+        #     final_dict = {}
+        #     final_dict["fr_title"] = document_dict["fr_title"]
+        #     final_dict["document_number"] = document_dict["document_number"]
 
-            if "Date de dépôt" in document_dict.keys():
-                final_dict["date"] = document_dict["Date de dépôt"]
+        #     if "Date de dépôt" in document_dict.keys():
+        #         final_dict["date"] = document_dict["Date de dépôt"]
 
-            final_dict["document_page_url"] = document_dict["document_page_url"]
-            final_dict["fr_main_title"] = document_dict["fr_main_title"]
+        #     final_dict["document_page_url"] = document_dict["document_page_url"]
+        #     final_dict["fr_main_title"] = document_dict["fr_main_title"]
 
-            if "Document Chambre" in document_dict.keys(): 
-                final_dict["link_to_document"] = document_dict["Document Chambre"]
+        #     if "Document Chambre" in document_dict.keys(): 
+        #         final_dict["link_to_document"] = document_dict["Document Chambre"]
 
-            keywords = []
-            if "Descripteur Eurovoc principal" in document_dict.keys():
-                keywords.append(document_dict["Descripteur Eurovoc principal"].title()) 
-            if "Descripteurs Eurovoc" in document_dict.keys():
-                descripteurs = document_dict["Descripteurs Eurovoc"].title().split('|')
-                keywords.extend(descripteurs)
-            if "Mots-clés libres" in document_dict.keys():
-                descripteurs = document_dict["Mots-clés libres"].title().split('|')
-                keywords.extend(descripteurs)
-            formatted_list = []
-            for item in keywords:
-                cleaned_item = item.strip()
-                if " " in cleaned_item:
-                    cleaned_item = cleaned_item.title()
-                else:
-                    cleaned_item = cleaned_item.capitalize()
-                formatted_list.append(cleaned_item)
-            final_dict["fr_keywords"] = list(set(formatted_list))
+        #     keywords = []
+        #     if "Descripteur Eurovoc principal" in document_dict.keys():
+        #         keywords.append(document_dict["Descripteur Eurovoc principal"].title()) 
+        #     if "Descripteurs Eurovoc" in document_dict.keys():
+        #         descripteurs = document_dict["Descripteurs Eurovoc"].title().split('|')
+        #         keywords.extend(descripteurs)
+        #     if "Mots-clés libres" in document_dict.keys():
+        #         descripteurs = document_dict["Mots-clés libres"].title().split('|')
+        #         keywords.extend(descripteurs)
+        #     formatted_list = []
+        #     for item in keywords:
+        #         cleaned_item = item.strip()
+        #         if " " in cleaned_item:
+        #             cleaned_item = cleaned_item.title()
+        #         else:
+        #             cleaned_item = cleaned_item.capitalize()
+        #         formatted_list.append(cleaned_item)
+        #     final_dict["fr_keywords"] = list(set(formatted_list))
 
-            final_dict["fr_source"] = "Documents Parlementaires Aperçu Complet"
+        #     final_dict["fr_source"] = "Documents Parlementaires Aperçu Complet"
 
-            if "COMMISSION CHAMBRE" in document_dict.keys():
-                final_dict["commissionchambre"] = document_dict["COMMISSION CHAMBRE"]
-            if "1. COMMISSION CHAMBRE" in document_dict.keys():
-                final_dict["commissionchambre"] = document_dict["1. COMMISSION CHAMBRE"]
+        #     if "COMMISSION CHAMBRE" in document_dict.keys():
+        #         final_dict["commissionchambre"] = document_dict["COMMISSION CHAMBRE"]
+        #     if "1. COMMISSION CHAMBRE" in document_dict.keys():
+        #         final_dict["commissionchambre"] = document_dict["1. COMMISSION CHAMBRE"]
 
-            if "commissionchambre" in final_dict.keys():
-                final_dict["commissionchambre"] = final_dict["commissionchambre"].title()
+        #     if "commissionchambre" in final_dict.keys():
+        #         final_dict["commissionchambre"] = final_dict["commissionchambre"].title()
             
-            if final_dict["link_to_document"] == "NoURLfound":
-                fr_text, nl_text = "",""
-                print("noURL")
-            else:
-                fr_text, nl_text = get_text_documet_parlementaire(final_dict["link_to_document"])
-            if "Auteur(s)" in document_dict.keys():
-                final_dict["fr_stakeholders"] = document_dict["Auteur(s)"]
+        #     if final_dict["link_to_document"] == "NoURLfound":
+        #         fr_text, nl_text = "",""
+        #         print("noURL")
+        #     else:
+        #         fr_text, nl_text = get_text_documet_parlementaire(final_dict["link_to_document"])
+        #     if "Auteur(s)" in document_dict.keys():
+        #         final_dict["fr_stakeholders"] = document_dict["Auteur(s)"]
 
-            final_dict["fr_title_embedding"] = embed(final_dict["fr_main_title"], model=model).tolist()
+        #     final_dict["fr_title_embedding"] = embed(final_dict["fr_main_title"], model=model).tolist()
 
-            if final_dict["link_to_document"] == "NoURLfound":
-                final_dict["fr_text_embedding"] = np.array([0]*768).astype(np.float32).tolist()
-                final_dict["nl_text_embedding"] = np.array([0]*768).astype(np.float32).tolist()
-            else:
-                final_dict["fr_text_embedding"] = embed(fr_text, model=model).tolist()
-                final_dict["nl_text_embedding"] = embed(nl_text, model=model).tolist()
+        #     if final_dict["link_to_document"] == "NoURLfound":
+        #         final_dict["fr_text_embedding"] = np.array([0]*768).astype(np.float32).tolist()
+        #         final_dict["nl_text_embedding"] = np.array([0]*768).astype(np.float32).tolist()
+        #     else:
+        #         final_dict["fr_text_embedding"] = embed(fr_text, model=model).tolist()
+        #         final_dict["nl_text_embedding"] = embed(nl_text, model=model).tolist()
 
-            if "commissionchambre" in final_dict.keys():
-                policy_level = final_dict["commissionchambre"].title()
-                final_dict["policy_level"] = f'Federal Parliament ({policy_level})'
+        #     if "commissionchambre" in final_dict.keys():
+        #         policy_level = final_dict["commissionchambre"].title()
+        #         final_dict["policy_level"] = f'Federal Parliament ({policy_level})'
 
-            fr_type = re.sub(r'\d+', '', document_dict["Type de document"])
-            fr_type = ' '.join(word.capitalize() for word in fr_type.split())
-            final_dict["fr_type"] = get_type(fr_type)
+        #     fr_type = re.sub(r'\d+', '', document_dict["Type de document"])
+        #     fr_type = ' '.join(word.capitalize() for word in fr_type.split())
+        #     final_dict["fr_type"] = get_type(fr_type)
 
-            print(f"Adding data {index} into database..")
+        #     print(f"Adding data {index} into database..")
 
-            col.insert_one(final_dict)        
+        #     col.insert_one(final_dict)        
             
 
 end_time = time.perf_counter()
