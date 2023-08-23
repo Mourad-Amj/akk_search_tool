@@ -165,7 +165,7 @@ for group_document_url in group_document_urls[:1]:
         final_dict["reference"] = ""
 
        
-        document_list.append(final_dict)      
+             
         # query = {
         # "$and": [
         #     {"source": {"$eq": "Documents parlementaires aperçu complet"}},
@@ -190,8 +190,7 @@ for group_document_url in group_document_urls[:1]:
 end_time = time.perf_counter()
 print(round(end_time - start_time, 2), "seconds")
 
-for document in document_dict[:3]:
-    print(document)
+
 
 # with open("data/apercu_complet_partial.json", "w") as fout:
 #     json.dump(document_list, fout,ensure_ascii=False)
