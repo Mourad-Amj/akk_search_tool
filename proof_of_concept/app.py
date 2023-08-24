@@ -10,9 +10,17 @@ from streamlit_tags import st_tags, st_tags_sidebar
 from sentence_transformers import SentenceTransformer, util
 import datetime
 
-st.set_page_config(page_title = "lachambre search engine")
+st.set_page_config(page_title = "lachambre search engine",layout="wide")
+
 # initialization
-st.title("PoC: lachambre.be custom search engine")
+lang_col, title_col = st.columns(2)
+
+
+# initialization
+# with title_col:
+#     st.markdown("<h1 style='text-align: center'>La Chambre Search</h1>",
+#             unsafe_allow_html=True)
+search = st.text_input('Type your search')
 
 # Creating test .jsons
 
@@ -278,14 +286,20 @@ database = load_data()
 
 
 # Language setting
+lang_col, title_col = st.columns(2)
+with lang_col:
+    if "language" not in st.session_state:
+        st.session_state.language = "fr"
+    st.radio(
+        "Language: ",
+        ('fr', 'nl'),
+        key = "language"
+        )
 
-if "language" not in st.session_state:
-    st.session_state.language = "fr"
-st.radio(
-    "Language: ",
-    ('fr', 'nl'),
-    key = "language"
-    )
+with title_col:
+    st.markdown("<h1 style='text-align: center'>La Chambre Search</h1>",
+            unsafe_allow_html=True)
+    
 
 # Reset button
 
@@ -304,7 +318,7 @@ col1, col2, col3= st.columns(3)
 
 if 'search_text' not in st.session_state:
     st.session_state['search_text'] = 'Type your search'
-st.session_state['search_text'] = st.text_input(st.session_state['search_text'])
+#st.session_state['search_text'] = st.text_input(st.session_state['search_text'])
 
 with col1:
     # Slider to tune the threshold on cos similarity
@@ -346,7 +360,7 @@ with col3:
     )
 # Applying the filters
 
-embedder = SentenceTransformer('all-MiniLM-L6-v2')
+embedder = SentenceTransformer("sentence-transformers/LaBSE")
 
 print(st.session_state['search_text'])
 query_embedding = embedder.encode(st.session_state['search_text'], convert_to_tensor=False)
