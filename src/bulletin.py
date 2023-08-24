@@ -182,8 +182,10 @@ def scrapping_data(full_link, session):
         return
     soup = bs(response.text, "html.parser")
     title = clean_unicode(soup.find("h1").text.strip())
-    document_table = soup.find("table")
+    x = re.findall('[0-9]+', title)
+    last_title = ".".join(x)
 
+    document_table = soup.find("table")
     if document_table is None:
             return list()
 
@@ -192,9 +194,7 @@ def scrapping_data(full_link, session):
     auteur_key = "".join(key)
     value = auteur[1].text.split()
     auteur_name = " ".join(value)
-    data_dict = {"page_url": full_link, "title": title, auteur_key:auteur_name}
-    update = {"title": (re.search(r': (\d+)', data_dict["title"])[1])}
-    data_dict.update(update)
+    data_dict = {"page_url": full_link, "title": f"B{last_title}", auteur_key:auteur_name}
     
     df = pd.read_html(response.text)[0]
     data_dict.update({k:v for k,v in df.to_dict(orient='tight')['data'][1:]})
