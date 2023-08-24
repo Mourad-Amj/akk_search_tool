@@ -211,7 +211,7 @@ def main(language='fr'):
         full_links = chain.from_iterable(thread_map(partial(scrape_url, session=session), links))
         print("done getting full links")
         all_data = list(map(partial(scrapping_data, session=session), progress_bar(full_links))) # 1h30 total time
-"""    with open(f"data/bulletin_{language}.json", "w", encoding="utf-8") as f:
+"""     with open(f"data/bulletin_{language}.json", "w", encoding="utf-8") as f:
         json.dump(all_data, f, indent=4, ensure_ascii=False)"""
 
 if __name__ == "__main__":

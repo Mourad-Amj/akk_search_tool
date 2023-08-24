@@ -99,7 +99,7 @@ with open("Commission_rendu_intégral.csv", "w", newline="", encoding="utf-8") a
         writer.writeheader()
         writer.writerows(link_list)"""
 
-json_filename = "commission_compte_rendu_integral.json"
+json_filename = "data/commission_compte_rendu_integral.json"
 with open(json_filename, mode='w', encoding='utf-8') as json_file:
     json.dump(link_list, json_file, indent=4, ensure_ascii=False)
         

@@ -141,7 +141,7 @@ links = extract_main(xml_url)
 agenda_data = extract_agenda(links, session)
 
 
-json_filename = "agenda_corrected.json"
+json_filename = "data/agenda_corrected.json"
 with open(json_filename, mode="w", encoding="utf-8") as json_file:
     json.dump(agenda_data, json_file, indent=4, ensure_ascii=False)
 

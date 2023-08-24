@@ -64,7 +64,7 @@ def get_all_data(link, session):
                 "date": dossier_date_formatted,
                 "link_to_document": pdf_link,
                 "pdf id": pdf_link_element,
-                "keywords": " ",
+                "keywords": "",
                 "source": "Documents Parlementaires Récents",
                 "commissionchambre": "",
                 "nl_text": "",
@@ -94,7 +94,7 @@ def get_all_data(link, session):
 
 
 def save_file(data):
-    with open("data/new_documents_parlementaires_recents.json", "w") as f:
+    with open("data/new_documents_parlementaires_recents_fr.json", "w") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
 
