@@ -182,8 +182,10 @@ def scrapping_data(full_link, session):
         return
     soup = bs(response.text, "html.parser")
     title = clean_unicode(soup.find("h1").text.strip())
-    document_table = soup.find("table")
+    x = re.findall('[0-9]+', title)
+    last_title = ".".join(x)
 
+    document_table = soup.find("table")
     if document_table is None:
             return list()
 
@@ -192,9 +194,7 @@ def scrapping_data(full_link, session):
     auteur_key = "".join(key)
     value = auteur[1].text.split()
     auteur_name = " ".join(value)
-    data_dict = {"page_url": full_link, "title": title, auteur_key:auteur_name}
-    update = {"title": (re.search(r': (\d+)', data_dict["title"])[1])}
-    data_dict.update(update)
+    data_dict = {"page_url": full_link, "title": f"B{last_title}", auteur_key:auteur_name}
     
     df = pd.read_html(response.text)[0]
     data_dict.update({k:v for k,v in df.to_dict(orient='tight')['data'][1:]})
@@ -217,8 +217,13 @@ def main(language='fr'):
         full_links = chain.from_iterable(thread_map(partial(scrape_url, session=session), links))
         print("done getting full links")
         all_data = list(map(partial(scrapping_data, session=session), progress_bar(full_links))) # 1h30 total time
+<<<<<<< HEAD
+"""     with open(f"data/bulletin_{language}.json", "w", encoding="utf-8") as f:
+        json.dump(all_data, f, indent=4, ensure_ascii=False)"""
+=======
     # with open(f"data/bulletin_{language}.json", "w", encoding="utf-8") as f:
     #     json.dump(all_data, f, indent=4, ensure_ascii=False)
+>>>>>>> 1a97400160b5cd1ddce445332f00427da7dbe180
 
 if __name__ == "__main__":
     fire.Fire(main)
