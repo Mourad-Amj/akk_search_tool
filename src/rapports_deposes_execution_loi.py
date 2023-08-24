@@ -113,7 +113,7 @@ df_content["issue"] = df_content["fr_text"] + " " + df_content["fr_title"]
 rapports_list = df_content.to_dict(orient="records")
 
 for rapport in rapports_list:
-    if col.find_one({"fr_text": rapport["fr_text"]}):
+    if col.find_one({"fr_text": {"$eq": rapport["fr_text"]}}):
         print("Document with the same doc_number already exists.")
 
     else:
