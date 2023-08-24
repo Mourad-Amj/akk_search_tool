@@ -121,7 +121,7 @@ group_document_urls = [base_url + link["href"] for link in group_links]
 
 print("Creating list of document data ...")
 document_list = []
-for group_document_url in group_document_urls:
+for group_document_url in group_document_urls[]:
     url_soup = get_soup(group_document_url)
     table = url_soup.find("table")
     document_links = table.find_all("a")

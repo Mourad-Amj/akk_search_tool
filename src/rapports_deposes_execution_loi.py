@@ -2,10 +2,24 @@
 Scrape the data from the 'Rapports déposés en exécution d'une loi' page of the lachambre.be site.
 """
 import json
+import time
 import pandas as pd
+import pymongo
+import certifi
+import os
+import ssl
+from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
+ssl._create_default_https_context = ssl._create_unverified_context
+start_time = time.perf_counter()
 
 url = "https://www.lachambre.be/kvvcr/showpage.cfm?section=none&language=fr&cfm=/site/wwwcfm/rajv/rajvlist.cfm"
+
+load_dotenv()
+connection = os.getenv("MONGODB_URI")
+client = pymongo.MongoClient(connection, tlsCAFile=certifi.where())
+db = client["akkanto_db"]
+col = db["rapports_deposes_final"]
 
 # Get the two tables (with the column names and the content) from the url
 dfs = pd.read_html(url)
@@ -19,10 +33,10 @@ df_content = df_content.drop(df_content.columns[[4]], axis=1)
 # Add column names to the content table
 df_content.columns = df_titles.iloc[0].tolist()
 
-
+model = SentenceTransformer("sentence-transformers/LaBSE")
 # embedder function
 def embedder(doc):
-    model = SentenceTransformer("sentence-transformers/LaBSE")
+    
     embedding = model.encode(doc, convert_to_tensor=False)
     return embedding
 
@@ -44,11 +58,24 @@ df_content.rename(columns={"Loi & Article": "fr_title"}, inplace=True)
 df_content.rename(columns={"Periodicité": "frequency"}, inplace=True)
 df_content["issue"] = df_content["fr_text"] + " " + df_content["fr_title"]
 
-# embedding + new columns for embedding
-df_content["fr_title_embedding"] = embedder(df_content["fr_title"]).tolist()
-df_content["fr_text_embedding"] = embedder(df_content["fr_text"]).tolist()
+
 
 # Export to json file
-df_content.to_json(
-    "data/rapports_deposes_execution_loi.json", orient="records", force_ascii=False
-)
+# df_content.to_json(
+#     "data/rapports_deposes_execution_loi.json", orient="records", force_ascii=False
+# )
+rapports_list = df_content.to_dict(orient="records")
+
+for rapport in rapports_list:
+
+    if col.find_one({"fr_text": rapport["fr_text"]}):
+        print("Document with the same doc_number already exists.")
+        
+    else:
+        rapport["fr_title_embedding"] = embedder(rapport["fr_title"]).tolist()
+        rapport["fr_text_embedding"] = embedder(rapport["fr_text"]).tolist()
+        print("Adding new document ...")
+        col.insert_one(rapport)  
+
+end_time = time.perf_counter()
+print(round(end_time - start_time, 2), "seconds")
