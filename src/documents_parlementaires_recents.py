@@ -19,7 +19,6 @@ def get_links(url, session):
 
         href_value = link.attrs.get("href")
         final_link = f"{LINK_PREFIX}{href_value}"
-        print(final_link)
 
         yield final_link
 
