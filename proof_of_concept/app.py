@@ -11,16 +11,17 @@ from sentence_transformers import SentenceTransformer, util
 import datetime
 
 st.set_page_config(page_title = "lachambre search engine",layout="wide")
-
+st.markdown("<h1 style='text-align:center'>La Chambre Search</h1>",
+            unsafe_allow_html=True)
 # initialization
-lang_col, title_col = st.columns(2)
+
 
 
 # initialization
 # with title_col:
 #     st.markdown("<h1 style='text-align: center'>La Chambre Search</h1>",
 #             unsafe_allow_html=True)
-search = st.text_input('Type your search')
+# search = st.text_input('Type your search')
 
 # Creating test .jsons
 
@@ -238,14 +239,14 @@ def load_data():
     return database
 
 
-def apply_topic_filter(database, query_embedding, score_threshold):
-    search_result = []
-    for item in database: 
-        cos_score = util.cos_sim(item["embedding"], query_embedding)[0]
-        condition = cos_score.abs()
-        if condition > score_threshold :
-            search_result.append(item)
-    return search_result
+# def apply_topic_filter(database, query_embedding, score_threshold):
+#     search_result = []
+#     for item in database: 
+#         cos_score = util.cos_sim(item["embedding"], query_embedding)[0]
+#         condition = cos_score.abs()
+#         if condition > score_threshold :
+#             search_result.append(item)
+#     return search_result
 
 @st.cache_data
 def apply_date_filter(database, start_date, end_date):
@@ -286,7 +287,9 @@ database = load_data()
 
 
 # Language setting
-lang_col, title_col = st.columns(2)
+search_col, lang_col = st.columns(spec=[0.9,0.1])
+with search_col:
+    search = st.text_input('Type your search')
 with lang_col:
     if "language" not in st.session_state:
         st.session_state.language = "fr"
@@ -296,10 +299,7 @@ with lang_col:
         key = "language"
         )
 
-with title_col:
-    st.markdown("<h1 style='text-align: center'>La Chambre Search</h1>",
-            unsafe_allow_html=True)
-    
+
 
 # Reset button
 
@@ -322,8 +322,8 @@ if 'search_text' not in st.session_state:
 
 with col1:
     # Slider to tune the threshold on cos similarity
-    score_threshold = st.slider('Filtering threshold: ', 0.0, 0.5, 0.35)
-    st.write("Cosine similarity set at", score_threshold)
+    score_threshold = st.select_slider('Select Similarity: ', options=["No","Related","Best"])
+    st.write("Relevance rate at : ", score_threshold)
     st.info('Filter by relevance', icon="ℹ️")
     
 # Date filter 
@@ -353,7 +353,7 @@ with col2:
 with col3:
     eurovocs_list = []
     keywords = st_tags(
-        label="Enter EuroVocs keywords",
+        label="Enter Keywords",
         text ="Press enter to add more",
         suggestions=eurovocs_list,
         key = "keywords_filter"
@@ -366,13 +366,13 @@ print(st.session_state['search_text'])
 query_embedding = embedder.encode(st.session_state['search_text'], convert_to_tensor=False)
 
 agenda_search = apply_date_filter(agenda, start_date, end_date)
-agenda_search = apply_topic_filter(agenda_search, query_embedding, score_threshold)
+#agenda_search = apply_topic_filter(agenda_search, query_embedding, score_threshold)
 
 doc_search = apply_date_filter(database, start_date, end_date)
-if not st.session_state['search_text'] == 'Type your search':
-    query_embedding = embedder.encode(st.session_state['search_text'], convert_to_tensor=False)
-    agenda_search = apply_topic_filter(agenda_search, query_embedding, score_threshold)
-    doc_search = apply_topic_filter(doc_search, query_embedding, score_threshold)
+# if not st.session_state['search_text'] == 'Type your search':
+#     query_embedding = embedder.encode(st.session_state['search_text'], convert_to_tensor=False)
+#     agenda_search = apply_topic_filter(agenda_search, query_embedding, score_threshold)
+#     doc_search = apply_topic_filter(doc_search, query_embedding, score_threshold)
 
 if keywords:
     doc_search = apply_keywords_filter(doc_search, keywords, st.session_state.language)
@@ -401,7 +401,7 @@ try:
     agenda_out = st.data_editor(agenda_out, hide_index=True, num_rows = "dynamic", use_container_width= True)
 except:
     st.write("Empty agenda")
-st.write("Looking back: ")
+st.write("Documents: ") #Was "Looking back"
 try:
     df_out = st.data_editor(df_out, hide_index=True, num_rows = "dynamic", use_container_width= True)
 except:
