@@ -116,8 +116,8 @@ for row in rows:
     except:
         print("Not a valid url.")
     question_soup = bs(question_response.content, "html.parser")
-    for h2_tag in question_soup.find_all("h2"):
-        text = h2_tag.text.strip()
+    for tag in question_soup.find_all():
+        text = tag.text.strip()
         question_code_flag = 0
         if (
             re.compile(r"\(\d{8}\w\)").search(text) != None
@@ -133,7 +133,7 @@ for row in rows:
                 # Sometimes the first question has FR and the second NL and vice versa, this is a check for it.
 
                 try:
-                    if h2_tag.span["lang"] == "FR":
+                    if tag.span["lang"] == "FR":
                         question_FR = " ".join(text.split())
                         start_with = text.split("à")[0].strip()
                         end_with = text.split("à")[1].strip()
@@ -145,7 +145,7 @@ for row in rows:
                         elif "-" in start_with:
                             politician_asking = " ".join(start_with.split()[1:])
 
-                    elif h2_tag.span["lang"] == "NL":
+                    elif tag.span["lang"] == "NL":
                         question_NL = " ".join(text.split())
                         start_with = text.split("aan")[0].strip()
                         end_with = text.split("aan")[1].strip()
@@ -157,21 +157,20 @@ for row in rows:
 
                 except:
                     print("problem with span lang attribute.")
-                    print(h2_tag.span)
-
-                for next_h2_tag in h2_tag.find_next_siblings("h2"):
-                    next_text = next_h2_tag.text.strip()
+               
+                
+                for next_tag in tag.find_next_siblings():
+                    next_text = next_tag.text.strip()
                     if question_code in next_text:
                         question_code_flag = 2
                         try:
-                            if next_h2_tag.span["lang"] == "FR":
+                            if next_tag.span["lang"] == "FR":
                                 question_FR = " ".join(next_text.split())
-                            elif next_h2_tag.span["lang"] == "NL":
+                            elif next_tag.span["lang"] == "NL":
                                 question_NL = " ".join(next_text.split())
                         except:
                             print("problem with span lang attribute.")
-                            print(h2_tag.span)
-
+                            
                         existing_document = col.find_one(
                             {"fr_main_title": get_issue(question_FR)}
                         )
