@@ -28,14 +28,47 @@ def init_connection():
 client = init_connection()
 
 #Used to save db into file
-def save_db_json():
+def save_db_json(db_to_save):
+    # with open(db_to_save, "rb") as data_file:
+    #          agenda_db_file = json.load(data_file)
+
+    #     agenda_db = agenda_db_file
     return None
 
 def load_db_json():
-    return None
+    cached_agenda_db_file_path = "agenda_db.json"
+    cached_doc_db_file_path = "doc_db.json"
+    
+    cached_pleniere_db_file_path = "pleneiere_db.json"
+    cached_commission_db_file_path = "commission_db.json"
+    
+    with open(cached_agenda_db_file_path, "rb") as data_file:
+             agenda_db_file = json.load(data_file)
+
+    agenda_db = agenda_db_file
+    
+    with open(cached_doc_db_file_path, "rb") as data_file:
+            doc_db_file = json.load(data_file)
+
+    doc_db = doc_db_file
+    
+    #updated
+    with open(cached_pleniere_db_file_path, "rb") as data_file:
+            pleniere_db_file = json.load(data_file)
+
+    pleniere_db = pleniere_db_file
+    
+    with open(cached_commission_db_file_path, "rb") as data_file:
+            commission_db_file = json.load(data_file)
+
+    commissions_db = commission_db_file
+    
+    return 
 
 
 #Added Plenieres and commissions
+#adding cache data reduces considerably the loading time.
+@st.cache_data
 def get_data():
     
     #---------------------------------------------------------------------LOADING FROM FILE
@@ -60,7 +93,7 @@ def get_data():
 
         doc_db = doc_db_file
         
-        #update it
+        #updated
         with open(cached_pleniere_db_file_path, "rb") as data_file:
              pleniere_db_file = json.load(data_file)
 
@@ -70,6 +103,7 @@ def get_data():
              commission_db_file = json.load(data_file)
 
         commissions_db = commission_db_file
+        agenda_db, doc_db, pleniere_db, commissions_db = load_db_json()
         
     else: #No file then create
         db = client.akkanto_db
@@ -100,11 +134,11 @@ def get_data():
             data_docs = json.dumps(serialized_doc,indent=4)
             outfile.write(data_docs)
             
-        with io.open('agenda_db.json', 'w', encoding='utf8') as outfile:
+        with io.open('plenieres.json', 'w', encoding='utf8') as outfile:
             data_pleniere = json.dumps(serialized_pleniere,indent=4)
             outfile.write(data_pleniere)
         
-        with io.open('agenda_db.json', 'w', encoding='utf8') as outfile:
+        with io.open('commissions_db.json', 'w', encoding='utf8') as outfile:
             data_commissions = json.dumps(serialized_commissions,indent=4)
             outfile.write(data_commissions)
             
@@ -137,7 +171,8 @@ agenda, database, pleniere, commission = get_data()
 # initialization
 st.title("PoC: lachambre.be custom search engine")
 
-# Creating test .jsons
+#moved search bar from 235
+search = st.text_input('Type your search')
 
 
 
@@ -230,7 +265,7 @@ with col1:
 # Applying the filters
 
 embedder = SentenceTransformer('all-MiniLM-L6-v2')
-search = st.text_input('Type your search')
+#search = st.text_input('Type your search')
 query_embedding = embedder.encode(search, convert_to_tensor=False)
 
 
