@@ -98,7 +98,6 @@ def extract_data(xml_page_url, session):
         print("Failed to fetch XML content.")
         exit()
     soup = BeautifulSoup(agenda_xml_content, 'xml')
-    print(soup)
 
     page_date = flip_date(soup.date.text)
     page_url = extract_url(xml_page_url)
@@ -107,7 +106,6 @@ def extract_data(xml_page_url, session):
     total_items = []
 
     for item in items:
-        print("Item:")
         paras = item.find_all('para')
         for para in paras:
             nl_text = para.description('label')[0].text
@@ -119,7 +117,7 @@ def extract_data(xml_page_url, session):
                 data_items['link_to_document'] = link
 
             total_items.append(data_items)
-    return total_items
+
     
 
     page_dict={
@@ -221,16 +219,11 @@ client = pymongo.MongoClient(mongodb_url)
 database = client[database_name]
 collection = database[collection_name]
 
-<<<<<<< HEAD
-json_filename = "data/agenda_corrected.json"
-with open(json_filename, mode="w", encoding="utf-8") as json_file:
-    json.dump(agenda_data, json_file, indent=4, ensure_ascii=False)
-=======
 for agenda in final_data:
         agenda_url = agenda["document_page_url"]
         existing_article = collection.find_one({"document_page_url": agenda_url})
         if not existing_article:
             collection.insert_one(agenda)
->>>>>>> 1a97400160b5cd1ddce445332f00427da7dbe180
+
 
 client.close()
