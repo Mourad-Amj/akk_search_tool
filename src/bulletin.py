@@ -22,7 +22,7 @@ load_dotenv()
 connection = os.getenv("MONGODB_URI")
 client = pymongo.MongoClient(connection, tlsCAFile=certifi.where())
 db = client["akkanto_db"]
-col = db["bulletin_test"]
+col = db["all_documents"]
 
 LINK_PREFIX = "https://www.lachambre.be"
 
@@ -64,7 +64,7 @@ def formatted_data_fr(data):
             "date": data["Date de délai"],
             "document_page_url": data["page_url"],
             "fr_main_title": data["Question"],
-            "link_to_document": data.get("Publication question", "") or data.get("Publication réponse", ""),
+            "link_to_document": data.get("Publication question", ""),
             "fr_keywords": data.get("Mots-clés libres", ""),
             "fr_source": "Bulletins des Questions et Réponses Ecrites",
             "commissionchambre": data["Département"],
@@ -74,9 +74,6 @@ def formatted_data_fr(data):
             "descripteurEurovocprincipal": data.get("Desc. Eurovoc principal", ""),
             "descripteursEurovoc": data.get("Descripteurs Eurovoc", ""),
         }   
-
-    update = {"document_number": (re.search(r': (\d+)', fr_data["document_number"])[1])}
-    fr_data.update(update)
 
     existing_document = col.find_one({"document_number": fr_data["document_number"],"fr_source":"Bulletins des Questions et Réponses Ecrites"})
 
@@ -115,14 +112,13 @@ def formatted_data_fr(data):
         fr_data["fr_text_embedding"] = embed(fr_data["fr_text"], model=model).tolist()
         fr_data.pop("descripteurEurovocprincipal", None)
         fr_data.pop("descripteursEurovoc", None)
+
         col.insert_one(fr_data)
-    #return fr_data
 
 def formatted_data_nl(data):    
     nl_data = {
             "nl_title": data["Titel"],
             "document_number": data["title"],
-            "document_page_url": data["page_url"],
             "nl_main_title": data["Vraag"],
             "nl_keywords": data.get("Vrije trefwoorden", ""),
             "nl_source": "Bulletins Vragen en Antwoorden",
@@ -133,9 +129,6 @@ def formatted_data_nl(data):
             "descripteurEurovocprincipal": data.get("Eurovoc-hoofddescriptor", ""),
             "descripteursEurovoc": data.get("Eurovoc-descriptoren", ""),
         } 
-    
-    update = {"document_number": (re.search(r': (\d+)', nl_data["document_number"])[1])}
-    nl_data.update(update)
     
     existing_record = col.find_one({"fr_source": "Bulletins des Questions et Réponses Ecrites", "document_number": nl_data["document_number"],  "nl_source": {"$in": ["", None]}})
 
@@ -172,6 +165,7 @@ def formatted_data_nl(data):
         nl_data["nl_text_embedding"] = embed(nl_data["nl_text"], model=model).tolist()
         nl_data.pop("descripteurEurovocprincipal", None)
         nl_data.pop("descripteursEurovoc", None)
+        
         # col.insert_one(nl_data)
 
         update_result = col.update_one(
@@ -187,30 +181,35 @@ def scrapping_data(full_link, session):
         print(f"Error fetching3: {full_link}. Status code: {response.status_code}")
         return
     soup = bs(response.text, "html.parser")
-
     title = clean_unicode(soup.find("h1").text.strip())
-    data_dict = {"page_url": full_link, "title": title}
+    x = re.findall('[0-9]+', title)
+    last_title = ".".join(x)
 
     document_table = soup.find("table")
-
     if document_table is None:
-        return list()
+            return list()
+
+    auteur = document_table.find("tr").find_all("td")
+    key = auteur[0].text.split()
+    auteur_key = "".join(key)
+    value = auteur[1].text.split()
+    auteur_name = " ".join(value)
+    data_dict = {"page_url": full_link, "title": f"B{last_title}", auteur_key:auteur_name}
     
     df = pd.read_html(response.text)[0]
     data_dict.update({k:v for k,v in df.to_dict(orient='tight')['data'][1:]})
     
-    match = re.match(pattern='legislat=(\d+)', string=full_link)
-    if match is not None:
-        legislature = match.group(1)
-        for header in ("Publication question", "Publication réponse"):
-            if header in data_dict and len(data_dict[header]) > 0: 
-                file = data_dict[header][1:]
-                data_dict[header] = f"https://www.lachambre.be/QRVA/pdf/{legislature}/{legislature}K0{file}.pdf"
+    links = soup.find_all("a")
+    for link in links:
+        href = link.get("href")
+        if href.startswith("/QRVA/pdf/55/"):
+            data_dict["Publication question"] = LINK_PREFIX + href
+            break
 
-    return formatted_data_nl(data_dict)
+    return formatted_data_fr(data_dict)
 
 
-def main(language='nl'):
+def main(language='fr'):
     root_url = f"https://www.lachambre.be/kvvcr/showpage.cfm?&language={language}&cfm=/site/wwwcfm/qrva/qrvaList.cfm?legislat=55"
 
     with requests.Session() as session :
