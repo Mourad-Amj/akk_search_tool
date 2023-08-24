@@ -22,7 +22,7 @@ load_dotenv()
 connection = os.getenv("MONGODB_URI")
 client = pymongo.MongoClient(connection, tlsCAFile=certifi.where())
 db = client["akkanto_db"]
-col = db["bulletin_test"]
+col = db["all_documents"]
 
 LINK_PREFIX = "https://www.lachambre.be"
 
@@ -64,20 +64,18 @@ def formatted_data_fr(data):
             "date": data["Date de délai"],
             "document_page_url": data["page_url"],
             "fr_main_title": data["Question"],
-            "link_to_document": data.get("Publication question", "") or data.get("Publication réponse", ""),
+            "link_to_document": data.get("Publication question", ""),
             "fr_keywords": data.get("Mots-clés libres", ""),
-            "fr_source": "Bulletins des questions et réponses écrites",
+            "fr_source": "Bulletins des Questions et Réponses Ecrites",
             "commissionchambre": data["Département"],
             "fr_text": data.get("Réponse", ""),
             "fr_stakeholders": data.get("Auteur", ""),
             "fr_status": data["Statut question"],
-            "fr_title_embedding": [],
-            "fr_text_embedding": [],
             "descripteurEurovocprincipal": data.get("Desc. Eurovoc principal", ""),
             "descripteursEurovoc": data.get("Descripteurs Eurovoc", ""),
         }   
 
-    existing_document = col.find_one({"document_number": fr_data["document_number"],"fr_source":"Bulletins des questions et réponses écrites"})
+    existing_document = col.find_one({"document_number": fr_data["document_number"],"fr_source":"Bulletins des Questions et Réponses Ecrites"})
 
     if existing_document:
         print("Document with the same doc_number already exists.") 
@@ -100,11 +98,11 @@ def formatted_data_fr(data):
             else:
                 cleaned_item = cleaned_item.capitalize()
             formatted_list.append(cleaned_item)
-        fr_data["fr_keywords"] = list(set(formatted_list))
+        new_keywords = {"fr_keywords": list(set(formatted_list))}
+        fr_data.update(new_keywords)
 
         policy_level = fr_data["commissionchambre"].title()
         fr_data["policy_level"] = f'Federal Parliament ({policy_level})'
-
         
         def embed(text, model):
             text_embedding = model.encode(text)
@@ -112,36 +110,31 @@ def formatted_data_fr(data):
         
         fr_data["fr_title_embedding"] = embed(fr_data["fr_main_title"], model=model).tolist()
         fr_data["fr_text_embedding"] = embed(fr_data["fr_text"], model=model).tolist()
+        fr_data.pop("descripteurEurovocprincipal", None)
+        fr_data.pop("descripteursEurovoc", None)
 
         col.insert_one(fr_data)
-    #return fr_data
 
 def formatted_data_nl(data):    
     nl_data = {
             "nl_title": data["Titel"],
             "document_number": data["title"],
-            "date": data.get("Termijndatum", ""),
-            "document_page_url": data["page_url"],
             "nl_main_title": data["Vraag"],
-            "link_to_document": data.get("Publicatie vraag", "") or data.get("Publicatie antwoord", ""),
             "nl_keywords": data.get("Vrije trefwoorden", ""),
-            "nl_source": "Bulletins vragen en antwoorden",
-            "commissionchambre": data["Departement"],
+            "nl_source": "Bulletins Vragen en Antwoorden",
+            "commissiekamer": data["Departement"],
             "nl_text": data.get("Antwoord", ""),
             "nl_stakeholders": data.get("Auteur", ""),
             "nl_status": data["Status vraag"],
-            "nl_title_embedding": [],
-            "nl_text_embedding": [],
             "descripteurEurovocprincipal": data.get("Eurovoc-hoofddescriptor", ""),
             "descripteursEurovoc": data.get("Eurovoc-descriptoren", ""),
         } 
     
-    existing_document = col.find_one({"document_number": nl_data["document_number"],"nl_source":"Bulletins vragen en antwoorden"})
+    existing_record = col.find_one({"fr_source": "Bulletins des Questions et Réponses Ecrites", "document_number": nl_data["document_number"],  "nl_source": {"$in": ["", None]}})
 
-    if existing_document:
-        print("Document with the same doc_number already exists.") 
+    # existing_document = col.find_one({"document_number": nl_data["document_number"],"nl_source":"Bulletins Vragen en Antwoorden"})
 
-    else:
+    if existing_record:
         keywords = []
         if nl_data["descripteurEurovocprincipal"] in nl_data.values():
             keywords.append(nl_data["descripteurEurovocprincipal"].title()) 
@@ -159,9 +152,10 @@ def formatted_data_nl(data):
             else:
                 cleaned_item = cleaned_item.capitalize()
             formatted_list.append(cleaned_item)
-        nl_data["nl_keywords"] = list(set(formatted_list))
+        new_keywords = {"nl_keywords": list(set(formatted_list))}
+        nl_data.update(new_keywords)
 
-        policy_level = nl_data["commissionchambre"].title()
+        policy_level = nl_data["commissiekamer"].title()
         nl_data["policy_level"] = f'Federal Parliament ({policy_level})'
         
         def embed(text, model):
@@ -169,8 +163,15 @@ def formatted_data_nl(data):
             return text_embedding
         nl_data["nl_title_embedding"] = embed(nl_data["nl_main_title"], model=model).tolist()
         nl_data["nl_text_embedding"] = embed(nl_data["nl_text"], model=model).tolist()
+        nl_data.pop("descripteurEurovocprincipal", None)
+        nl_data.pop("descripteursEurovoc", None)
+        
+        # col.insert_one(nl_data)
 
-        col.insert_one(nl_data)
+        update_result = col.update_one(
+                {"_id": existing_record["_id"]},
+                {"$set": nl_data}
+            )
 
 def scrapping_data(full_link, session):
 
@@ -180,25 +181,30 @@ def scrapping_data(full_link, session):
         print(f"Error fetching3: {full_link}. Status code: {response.status_code}")
         return
     soup = bs(response.text, "html.parser")
-
     title = clean_unicode(soup.find("h1").text.strip())
-    data_dict = {"page_url": full_link, "title": title}
+    x = re.findall('[0-9]+', title)
+    last_title = ".".join(x)
 
     document_table = soup.find("table")
-
     if document_table is None:
-        return list()
+            return list()
+
+    auteur = document_table.find("tr").find_all("td")
+    key = auteur[0].text.split()
+    auteur_key = "".join(key)
+    value = auteur[1].text.split()
+    auteur_name = " ".join(value)
+    data_dict = {"page_url": full_link, "title": f"B{last_title}", auteur_key:auteur_name}
     
     df = pd.read_html(response.text)[0]
     data_dict.update({k:v for k,v in df.to_dict(orient='tight')['data'][1:]})
     
-    match = re.match(pattern='legislat=(\d+)', string=full_link)
-    if match is not None:
-        legislature = match.group(1)
-        for header in ("Publication question", "Publication réponse"):
-            if header in data_dict and len(data_dict[header]) > 0: 
-                file = data_dict[header][1:]
-                data_dict[header] = f"https://www.lachambre.be/QRVA/pdf/{legislature}/{legislature}K0{file}.pdf"
+    links = soup.find_all("a")
+    for link in links:
+        href = link.get("href")
+        if href.startswith("/QRVA/pdf/55/"):
+            data_dict["Publication question"] = LINK_PREFIX + href
+            break
 
     return formatted_data_fr(data_dict)
 
@@ -211,8 +217,13 @@ def main(language='fr'):
         full_links = chain.from_iterable(thread_map(partial(scrape_url, session=session), links))
         print("done getting full links")
         all_data = list(map(partial(scrapping_data, session=session), progress_bar(full_links))) # 1h30 total time
+<<<<<<< HEAD
 """     with open(f"data/bulletin_{language}.json", "w", encoding="utf-8") as f:
         json.dump(all_data, f, indent=4, ensure_ascii=False)"""
+=======
+    # with open(f"data/bulletin_{language}.json", "w", encoding="utf-8") as f:
+    #     json.dump(all_data, f, indent=4, ensure_ascii=False)
+>>>>>>> 1a97400160b5cd1ddce445332f00427da7dbe180
 
 if __name__ == "__main__":
     fire.Fire(main)
