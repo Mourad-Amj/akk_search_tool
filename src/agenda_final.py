@@ -80,11 +80,12 @@ def flip_date(date :str)-> str :
     date_flip = date.split('-')
     return date_flip[2]+'/'+date_flip[1]+'/'+date_flip[0]
 
-def extract_url(soup):
-    date = soup.date.text
-    organ = soup.organ.text
-    Number = soup.meetingNumber.text
-    status = soup.status.text
+def extract_url(xml_page_url):
+    xml_data=xml_page_url.split("/")
+    date = xml_data[-3]
+    organ = xml_data[-5]
+    Number = xml_data[-2]
+    status = xml_data[-4]
     return f'https://www.lachambre.be/emeeting/?organ={organ}&status={status}&date={date}&number={Number}'
 
 def extract_data(xml_page_url, session):
@@ -97,24 +98,26 @@ def extract_data(xml_page_url, session):
         print("Failed to fetch XML content.")
         exit()
     soup = BeautifulSoup(agenda_xml_content, 'xml')
-    
-    page_date = flip_date(soup.date.text)
-    page_url = extract_url(soup)
 
-    all_items = soup.find_all('item')
-    
+    page_date = flip_date(soup.date.text)
+    page_url = extract_url(xml_page_url)
+
+    items = soup.find_all('item')
     total_items = []
 
-    for data in all_items:
-        nl_text = data.description('label')[0].text
-        fr_text = data.description('label')[1].text
-        data_items ={"nl_text":nl_text,"fr_text":fr_text}
+    for item in items:
+        paras = item.find_all('para')
+        for para in paras:
+            nl_text = para.description('label')[0].text
+            fr_text = para.description('label')[1].text
+            data_items ={"nl_text":nl_text,"fr_text":fr_text}
 
-        if data.annexes:
-            link = data.link('label')[0].text
-            data_items['link_to_document'] = link
-            
-        total_items.append(data_items)
+            if para.annexes:
+                link = para.link('label')[0].text
+                data_items['link_to_document'] = link
+
+            total_items.append(data_items)
+
     
 
     page_dict={
@@ -216,16 +219,11 @@ client = pymongo.MongoClient(mongodb_url)
 database = client[database_name]
 collection = database[collection_name]
 
-<<<<<<< HEAD
-json_filename = "data/agenda_corrected.json"
-with open(json_filename, mode="w", encoding="utf-8") as json_file:
-    json.dump(agenda_data, json_file, indent=4, ensure_ascii=False)
-=======
 for agenda in final_data:
         agenda_url = agenda["document_page_url"]
         existing_article = collection.find_one({"document_page_url": agenda_url})
         if not existing_article:
             collection.insert_one(agenda)
->>>>>>> 1a97400160b5cd1ddce445332f00427da7dbe180
+
 
 client.close()
