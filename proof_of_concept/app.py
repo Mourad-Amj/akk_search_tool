@@ -6,8 +6,7 @@
 import streamlit as st
 import pandas as pd
 import io
-import xlsxwriter
-
+from streamlit_tags import st_tags, st_tags_sidebar
 from sentence_transformers import SentenceTransformer, util
 import datetime
 
@@ -231,7 +230,7 @@ def load_data():
     return database
 
 
-def apply_topic_filter(database, score_threshold):
+def apply_topic_filter(database, query_embedding, score_threshold):
     search_result = []
     for item in database: 
         cos_score = util.cos_sim(item["embedding"], query_embedding)[0]
@@ -250,7 +249,21 @@ def apply_date_filter(database, start_date, end_date):
         else:
             search_result.append(item)
     return search_result
-    
+
+@st.cache_data    
+def apply_keywords_filter(database, keywords, language):
+    result = []
+    if not language in ['fr', 'nl']:
+        print(f"{language} is not a valid input. Make sure language is fr or nl.")
+        return None
+    for item in database:
+        try:
+            if all(keyword in item[f"{language}_keywords"] for keyword in keywords):
+                result.append(item)
+        except:
+            print(f"Error in applying the keywords filter. Do all database items have a {language}_keywords tag?")
+    return result
+            
 # ----------------------------------------------------------------------
 # Load environment
 # ----------------------------------------------------------------------
@@ -263,31 +276,44 @@ database = load_data()
 # Parameters
 # ----------------------------------------------------------------------
 
-language = st.radio(
-    "Output language: ",
-    ('fr', 'nl'))
+
+# Language setting
+
+if "language" not in st.session_state:
+    st.session_state.language = "fr"
+st.radio(
+    "Language: ",
+    ('fr', 'nl'),
+    key = "language"
+    )
+
+# Reset button
+
+if st.button('Reset filters'):
+    for key in st.session_state.keys():
+        del st.session_state[key]
 
 # ----------------------------------------------------------------------
 ### Filters sub-section
 # ----------------------------------------------------------------------
 
 st.subheader("Filters")
-col1, col2= st.columns(2)
+col1, col2, col3= st.columns(3)
 
-# ---
 # Search filter
-# ---
 
-# Text field + processing query
+if 'search_text' not in st.session_state:
+    st.session_state['search_text'] = 'Type your search'
+st.session_state['search_text'] = st.text_input(st.session_state['search_text'])
 
-with col2:
+with col1:
     # Slider to tune the threshold on cos similarity
     score_threshold = st.slider('Filtering threshold: ', 0.0, 0.5, 0.35)
     st.write("Cosine similarity set at", score_threshold)
     st.info('Filter by relevance', icon="ℹ️")
     
 # Date filter 
-with col1:
+with col2:
 # Date filter 
     #st.date_input("test date",format="DD/MM/YYYY")
 
@@ -310,16 +336,36 @@ with col1:
     if end_date != st.session_state['end_date']:
         st.session_state['end_date'] = end_date
 
- 
+with col3:
+    eurovocs_list = []
+    keywords = st_tags(
+        label="Enter EuroVocs keywords",
+        text ="Press enter to add more",
+        suggestions=eurovocs_list,
+        key = "keywords_filter"
+    )
 # Applying the filters
 
 embedder = SentenceTransformer('all-MiniLM-L6-v2')
-search = st.text_input('Type your search')
-query_embedding = embedder.encode(search, convert_to_tensor=False)
 
-agenda_search = apply_topic_filter(apply_date_filter(agenda, start_date, end_date), score_threshold)
-doc_search = apply_topic_filter(apply_date_filter(database, start_date, end_date), score_threshold)
+print(st.session_state['search_text'])
+query_embedding = embedder.encode(st.session_state['search_text'], convert_to_tensor=False)
 
+agenda_search = apply_date_filter(agenda, start_date, end_date)
+agenda_search = apply_topic_filter(agenda_search, query_embedding, score_threshold)
+
+doc_search = apply_date_filter(database, start_date, end_date)
+if not st.session_state['search_text'] == 'Type your search':
+    query_embedding = embedder.encode(st.session_state['search_text'], convert_to_tensor=False)
+    agenda_search = apply_topic_filter(agenda_search, query_embedding, score_threshold)
+    doc_search = apply_topic_filter(doc_search, query_embedding, score_threshold)
+
+if keywords:
+    doc_search = apply_keywords_filter(doc_search, keywords, st.session_state.language)
+
+# -----------------------------------------------------------------------
+### Converting databases to dataframes
+# -----------------------------------------------------------------------
 try:
     agenda_temp = pd.DataFrame(agenda_search)
     agenda_out = agenda_temp[['r', 'level', 'type', 'issue', 'date', 'authors', 'url', 'status']]
@@ -332,6 +378,10 @@ try:
 except:
     df_out = pd.DataFrame(doc_search)
 
+
+# -----------------------------------------------------------------------
+### Displaying the dataframes
+# -----------------------------------------------------------------------
 st.write("Agenda: ")
 try:
     agenda_out = st.data_editor(agenda_out, hide_index=True, num_rows = "dynamic", use_container_width= True)
