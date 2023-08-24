@@ -14,8 +14,6 @@ st.set_page_config(page_title = "lachambre search engine")
 # initialization
 st.title("PoC: lachambre.be custom search engine")
 
-
-
 # Some testing data 
 
 @st.cache_data
@@ -264,7 +262,7 @@ def apply_date_filter(database, start_date, end_date):
 @st.cache_data    
 def apply_keywords_filter(database, keywords, language):
     result = []
-    if not language in ['fr', 'nl']:
+    if language not in ['fr', 'nl']:
         print(f"{language} is not a valid input. Make sure language is fr or nl.")
         return None
     for item in database:
@@ -286,6 +284,9 @@ database = load_data()
 # Parameters
 # ----------------------------------------------------------------------
 
+if st.button('Reset filters'):
+    for key in st.session_state.keys():
+        del st.session_state[key]
 
 # Language setting
 
@@ -298,9 +299,6 @@ st.session_state.language = st.radio(
 
 # Reset button
 
-if st.button('Reset filters'):
-    for key in st.session_state.keys():
-        del st.session_state[key]
 
 # ----------------------------------------------------------------------
 ### Filters sub-section
