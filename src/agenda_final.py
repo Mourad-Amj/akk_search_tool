@@ -207,17 +207,50 @@ def process_and_save_embeddings(agenda_data, model_name='sentence-transformers/L
     
     return agenda_data
 
+def serialize_to_records(agenda_data):
+        '''function to serialize records into a one record document'''
+        data_records = []
+        for items in agenda_data:
+                
+                for i, data in enumerate(items['items']):
+                        rec_dict = {}
+                        rec_dict['date'] = items['date']
+                        rec_dict['document_page_url'] = items['document_page_url']
+                        rec_dict['title_nl'] = items['title_nl']
+                        rec_dict['title_fr'] = items['title_fr']
+                        rec_dict['nl_text'] = items['items'][i]['nl_text']
+                        rec_dict['fr_text'] = items['items'][i]['fr_text']
+
+                        if 'link_to_document' in items['items'][i].keys():
+                                rec_dict['link_to_document'] = items['items'][i]['link_to_document']
+
+                        if 'Stakeholders' in items['items'][i].keys():
+                                rec_dict['Stakeholders'] = items['items'][i]['Stakeholders']
+
+                        if 'nl_text_embedding' in items['items'][i].keys():  
+                                rec_dict['nl_text_embedding'] = items['items'][i]['nl_text_embedding']
+                                
+                        if 'fr_text_embedding' in items['items'][i].keys():        
+                                rec_dict['fr_text_embedding'] = items['items'][i]['fr_text_embedding']
+                        data_records.append(rec_dict)
+
+        return data_records
+
+
 xml_url = finding_true_link()
 links = extract_main(xml_url)
 agenda_data = extract_agenda(links,session)
-final_data=transform(agenda_data)
+final_data=transform(agenda_data) # change to temp_data in case of serialization.
+# final_data = serialize_to_records(temp_data) code to serialize records
+
 
 mongodb_url = os.getenv("MONGODB_URI")
 database_name = "akkanto_db"
-collection_name = "agenda"
+collection_name = "agenda_new"
 client = pymongo.MongoClient(mongodb_url)
 database = client[database_name]
 collection = database[collection_name]
+#collection.insertMany(final_data)//insert all data/record in case of serialize
 
 for agenda in final_data:
         agenda_url = agenda["document_page_url"]
