@@ -121,7 +121,7 @@ group_document_urls = [base_url + link["href"] for link in group_links]
 
 print("Creating list of document data ...")
 document_list = []
-for group_document_url in group_document_urls:
+for group_document_url in group_document_urls[]:
     url_soup = get_soup(group_document_url)
     table = url_soup.find("table")
     document_links = table.find_all("a")
@@ -209,13 +209,18 @@ for group_document_url in group_document_urls:
                 final_dict["fr_stakeholders"] = document_dict["Auteur(s)"]
 
             final_dict["fr_title_embedding"] = embed(final_dict["fr_main_title"], model=model).tolist()
-
-            if final_dict["link_to_document"] == "NoURLfound":
+            
+            try:
+                if final_dict["link_to_document"] == "NoURLfound":
+                    final_dict["fr_text_embedding"] = np.array([0]*768).astype(np.float32).tolist()
+                    final_dict["nl_text_embedding"] = np.array([0]*768).astype(np.float32).tolist()
+                else:
+                    final_dict["fr_text_embedding"] = embed(fr_text, model=model).tolist()
+                    final_dict["nl_text_embedding"] = embed(nl_text, model=model).tolist()
+            except PDFSyntaxError:
+                print("issue on pdf")
                 final_dict["fr_text_embedding"] = np.array([0]*768).astype(np.float32).tolist()
                 final_dict["nl_text_embedding"] = np.array([0]*768).astype(np.float32).tolist()
-            else:
-                final_dict["fr_text_embedding"] = embed(fr_text, model=model).tolist()
-                final_dict["nl_text_embedding"] = embed(nl_text, model=model).tolist()
 
             if "commissionchambre" in final_dict.keys():
                 policy_level = final_dict["commissionchambre"].title()

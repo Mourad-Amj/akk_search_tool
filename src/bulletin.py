@@ -221,8 +221,13 @@ def main(language='nl'):
         full_links = chain.from_iterable(thread_map(partial(scrape_url, session=session), links))
         print("done getting full links")
         all_data = list(map(partial(scrapping_data, session=session), progress_bar(full_links))) # 1h30 total time
+<<<<<<< HEAD
+"""     with open(f"data/bulletin_{language}.json", "w", encoding="utf-8") as f:
+        json.dump(all_data, f, indent=4, ensure_ascii=False)"""
+=======
     # with open(f"data/bulletin_{language}.json", "w", encoding="utf-8") as f:
     #     json.dump(all_data, f, indent=4, ensure_ascii=False)
+>>>>>>> 1a97400160b5cd1ddce445332f00427da7dbe180
 
 if __name__ == "__main__":
     fire.Fire(main)
