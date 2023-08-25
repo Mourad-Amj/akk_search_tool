@@ -61,7 +61,7 @@ def formatted_data_fr(data):
     fr_data = {
             "fr_title": data["Titre"],
             "document_number": data["title"],
-            "date": data["Date de délai"],
+            "date": data.get("Date de délai",""),
             "document_page_url": data["page_url"],
             "fr_main_title": data["Question"],
             "link_to_document": data.get("Publication question", ""),
@@ -181,9 +181,13 @@ def scrapping_data(full_link, session):
         print(f"Error fetching3: {full_link}. Status code: {response.status_code}")
         return
     soup = bs(response.text, "html.parser")
-    title = clean_unicode(soup.find("h1").text.strip())
-    x = re.findall('[0-9]+', title)
-    last_title = ".".join(x)
+    title_element = soup.find("h1")
+    if title_element:
+        title = clean_unicode(title_element.text.strip())
+        x = re.findall('[0-9]+', title)
+        last_title = ".".join(x)
+    else:
+        last_title = ""
 
     document_table = soup.find("table")
     if document_table is None:
@@ -206,10 +210,10 @@ def scrapping_data(full_link, session):
             data_dict["Publication question"] = LINK_PREFIX + href
             break
 
-    return formatted_data_fr(data_dict)
+    return formatted_data_nl(data_dict)
 
 
-def main(language='fr'):
+def main(language='nl'):
     root_url = f"https://www.lachambre.be/kvvcr/showpage.cfm?&language={language}&cfm=/site/wwwcfm/qrva/qrvaList.cfm?legislat=55"
 
     with requests.Session() as session :
